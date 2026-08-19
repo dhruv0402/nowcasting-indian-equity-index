@@ -1,0 +1,35 @@
+tickers:
+  - "^NSEI"   # NIFTY 50
+  - "^BSESN"  # SENSEX
+
+data_collection:
+  mode: "rolling"        # "rolling" (Option A), "historical_daily" (Option B), or "synthetic"
+  min_collection_days: 21
+  rss_feeds:
+    - name: "Economic Times Markets"
+      url: "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"
+    - name: "Moneycontrol Stocks"
+      url: "https://www.moneycontrol.com/rss/MCtopnews.xml"
+    - name: "Google News India Business"
+      url: "https://news.google.com/rss/search?q=nifty+sensex+stock+market+india&hl=en-IN&gl=IN&ceid=IN:en"
+
+lag_detection:
+  baseline_window_min: 15
+  reaction_window_min: 60
+  significance_std_threshold: 2.0
+
+backtest:
+  slippage_bps: 5.0
+  brokerage_flat_fee_inr: 20.0
+  monte_carlo_simulations: 1000
+
+model:
+  algo: "xgboost"
+  train_test_split: "time_based_80_20"
+  random_state: 42
+
+paths:
+  db_path: "data/db.sqlite"
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  reports_dir: "reports"
