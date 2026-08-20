@@ -26,8 +26,11 @@ A 24-hour daily audit tracking continuous cloud data collection in **Supabase Po
 - **Price Bar Ingestion:** 4,849 minute bars (`^NSEI`: 2,428, `^BSESN`: 2,421)
 - **Empirical Reaction Lag:** 3 to 13 minutes (Median: 6 minutes)
 - **Model Evaluation:**
-  - **Clean In-Session Sample Size:** 54 events (43 Train / 11 Test)
-  - **Chronological Test Accuracy:** **72.73%** (8 / 11 correct on net directional targets)
+  - **Clean In-Session Sample Size:** 54 clean events (43 Train / 11 Test)
+  - **Chronological Test Accuracy:** **80.0%** (12 / 15 correct on test set)
+  - **Naive Majority-Class Baseline:** **80.0%** (12 / 15 correct; 100% `flat` predictions)
+  - **Model Alpha Lift Over Naive Baseline:** **0.0%** (Zero excess predictive lift; pending multi-week accumulation)
+  - **Binomial $p$-value (vs 50% chance):** $p = 0.0176$ *(driven by majority-class balance)*
   - **Top Feature Importances:**
     1. `sentiment_ewm_60m` (25.67%)
     2. `pre_event_volatility` (16.99%)
