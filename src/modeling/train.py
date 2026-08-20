@@ -41,10 +41,17 @@ def load_training_dataset(session: Session, ticker: str = "^NSEI") -> pd.DataFra
         "close": p.close
     } for p in price_bars]).sort_values("timestamp").reset_index(drop=True)
     
+    # Batch load all events and features in memory to avoid per-event SQL queries
+    events = session.query(NewsEvent).all()
+    event_map = {e.event_id: e for e in events}
+    event_features = session.query(EventFeature).all()
+    feature_map = {f.event_id: f for f in event_features}
+    
     rows = []
-    for e in events:
-        feat = session.query(EventFeature).filter_by(event_id=e.event_id).first()
-        if not feat:
+    for l in clean_lags:
+        e = event_map.get(l.event_id)
+        feat = feature_map.get(l.event_id)
+        if not e or not feat:
             continue
             
         t_pub = e.published_at
@@ -160,9 +167,8 @@ def train_nowcasting_model(config_path="config.yaml", db_path="data/db.sqlite"):
     acc = accuracy_score(y_test, preds)
     logger.info(f"Chronological Test Accuracy: {acc:.4f}")
     
-    # Clear previous run predictions to prevent cross-run test set accumulation
-    session.query(Prediction).delete()
-    session.commit()
+    # Generate unique run_id for historical run tracking (no delete needed)
+    run_id = f"run_{datetime.datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
     
     cost_cfg = config.get("backtest", {})
     slippage_bps = cost_cfg.get("slippage_bps", 5.0)
@@ -185,21 +191,20 @@ def train_nowcasting_model(config_path="config.yaml", db_path="data/db.sqlite"):
             
         net_ret = (gross_ret - cost_pct) if pred_dir != "flat" else 0.0
         
-        pred_id = f"xgb_{row['event_id']}"
-        existing = session.query(Prediction).filter_by(prediction_id=pred_id).first()
-        if not existing:
-            pred_obj = Prediction(
-                prediction_id=pred_id,
-                event_id=row["event_id"],
-                model_version="xgb_v1",
-                predicted_direction=pred_dir,
-                predicted_confidence=conf,
-                actual_direction=row["actual_direction"],
-                actual_return_pct=actual_ret,
-                trade_return_net_pct=net_ret,
-                created_at=datetime.datetime.utcnow()
-            )
-            session.add(pred_obj)
+        pred_id = f"{run_id}_{row['event_id']}"
+        pred_obj = Prediction(
+            prediction_id=pred_id,
+            run_id=run_id,
+            event_id=row["event_id"],
+            model_version="xgb_v1",
+            predicted_direction=pred_dir,
+            predicted_confidence=conf,
+            actual_direction=row["actual_direction"],
+            actual_return_pct=actual_ret,
+            trade_return_net_pct=net_ret,
+            created_at=datetime.datetime.utcnow()
+        )
+        session.add(pred_obj)
             
     session.commit()
     

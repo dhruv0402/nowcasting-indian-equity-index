@@ -1,9 +1,12 @@
 import os
+from dotenv import load_dotenv
 import sqlite3
 from sqlalchemy import (
     create_engine, Column, String, Float, Integer, DateTime, Boolean, ForeignKey, Text
 )
 from sqlalchemy.orm import declarative_base, sessionmaker
+
+load_dotenv()
 
 Base = declarative_base()
 
@@ -49,7 +52,7 @@ class LagMeasurement(Base):
     __tablename__ = "lag_measurements"
     
     event_id = Column(String, ForeignKey("news_events.event_id"), primary_key=True)
-    ticker = Column(String, nullable=False)
+    ticker = Column(String, primary_key=True)
     reaction_detected = Column(Boolean, nullable=False)
     lag_minutes = Column(Integer, nullable=True)
     reaction_return_pct = Column(Float, nullable=True)
@@ -60,6 +63,7 @@ class Prediction(Base):
     __tablename__ = "predictions"
     
     prediction_id = Column(String, primary_key=True)
+    run_id = Column(String, index=True, nullable=False, default="run_legacy")
     event_id = Column(String, ForeignKey("news_events.event_id"))
     model_version = Column(String, nullable=False)
     predicted_direction = Column(String)  # 'up', 'down', 'flat'

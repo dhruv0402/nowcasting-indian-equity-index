@@ -60,8 +60,12 @@ def get_metrics(
     reacted_count = len(valid_lags)
     no_react_pct = ((total_clean - reacted_count) / total_clean * 100.0) if total_clean > 0 else 50.0
     
-    # Prediction metrics
-    preds = session.query(Prediction).all()
+    # Query latest run predictions
+    latest_pred = session.query(Prediction).order_by(Prediction.created_at.desc()).first()
+    if latest_pred and latest_pred.run_id:
+        preds = session.query(Prediction).filter_by(run_id=latest_pred.run_id).all()
+    else:
+        preds = session.query(Prediction).all()
     session.close()
     
     if preds:
@@ -171,11 +175,13 @@ def get_case_studies():
         .order_by(NewsEvent.published_at.desc())
     )
     
+    ist_offset = datetime.timedelta(hours=5, minutes=30)
     records = []
     for news, lag in query.all():
+        ist_pub = news.published_at + ist_offset
         records.append({
             "event_id": news.event_id,
-            "published_at": news.published_at.strftime("%Y-%m-%d %H:%M UTC"),
+            "published_at": ist_pub.strftime("%Y-%m-%d %I:%M %p IST"),
             "category": news.event_type.upper(),
             "headline": news.headline_text,
             "source": news.source,
