@@ -160,7 +160,10 @@ def train_nowcasting_model(config_path="config.yaml", db_path="data/db.sqlite"):
     acc = accuracy_score(y_test, preds)
     logger.info(f"Chronological Test Accuracy: {acc:.4f}")
     
-    # Write predictions into SQLite database
+    # Clear previous run predictions to prevent cross-run test set accumulation
+    session.query(Prediction).delete()
+    session.commit()
+    
     cost_cfg = config.get("backtest", {})
     slippage_bps = cost_cfg.get("slippage_bps", 5.0)
     flat_fee = cost_cfg.get("brokerage_flat_fee_inr", 20.0)
