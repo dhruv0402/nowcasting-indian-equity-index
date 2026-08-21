@@ -33,8 +33,11 @@ def fetch_yfinance_minute_data(ticker: str, period: str = "7d") -> pd.DataFrame:
             "Volume": "volume"
         })
         
-        # Convert timestamp to naive UTC datetime
-        df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None)
+        # Convert timestamp properly to UTC
+        ts = pd.to_datetime(df['timestamp'])
+        if ts.dt.tz is not None:
+            ts = ts.dt.tz_convert('UTC').dt.tz_localize(None)
+        df['timestamp'] = ts
         df['ticker'] = ticker
         df['is_synthetic'] = False
         return df[['ticker', 'timestamp', 'open', 'high', 'low', 'close', 'volume', 'is_synthetic']]
@@ -150,11 +153,12 @@ def run_price_ingestion(config_path="config.yaml", use_synthetic=False, db_path=
             if news_events:
                 df = inject_synthetic_news_shocks(df, news_events)
                 
-        # Insert bars into DB
+        # Batch load existing timestamps in memory to avoid per-row SQL queries over pooler
+        existing_timestamps = {b.timestamp for b in session.query(PriceBar.timestamp).filter_by(ticker=ticker).all()}
+        
         bars_to_insert = []
         for _, row in df.iterrows():
-            existing = session.query(PriceBar).filter_by(ticker=row["ticker"], timestamp=row["timestamp"]).first()
-            if not existing:
+            if row["timestamp"] not in existing_timestamps:
                 bar = PriceBar(
                     ticker=row["ticker"],
                     timestamp=row["timestamp"],
@@ -166,9 +170,11 @@ def run_price_ingestion(config_path="config.yaml", use_synthetic=False, db_path=
                     is_synthetic=bool(row["is_synthetic"])
                 )
                 bars_to_insert.append(bar)
+                existing_timestamps.add(row["timestamp"])
                 
-        session.bulk_save_objects(bars_to_insert)
-        session.commit()
+        if bars_to_insert:
+            session.bulk_save_objects(bars_to_insert)
+            session.commit()
         total_bars += len(bars_to_insert)
         logger.info(f"Inserted {len(bars_to_insert)} price bars for {ticker}.")
         
