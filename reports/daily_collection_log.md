@@ -9,7 +9,7 @@ A 24-hour daily audit tracking continuous cloud data collection in **Supabase Po
 | Log Date | Canonical Headlines | Total Price Bars | Clean Events (Train / Test) | Chronological Accuracy | Top Predictive Feature | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **2026-08-20 (Day 1)** | 516 | 5,646 | 90 (72 / 18) | **50.00%** | `news_velocity_15m` (15.8%) | ✅ Verified |
-| **2026-08-21 (Day 2)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-08-21 (Day 2)** | 681 | 5,975 | 152 (121 / 31) | **67.74%** | `sentiment_ewm_60m` (24.1%) | ✅ Verified |
 | **2026-08-22 (Day 3)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-23 (Day 4)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-24 (Day 5)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
