@@ -10,7 +10,7 @@ A 24-hour daily audit tracking continuous cloud data collection in **Supabase Po
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **2026-08-20 (Day 1)** | 516 | 5,646 | 90 (72 / 18) | **50.00%** | `news_velocity_15m` (15.8%) | ✅ Verified |
 | **2026-08-21 (Day 2)** | 796 | 5,169 | 244 (195 / 49) | **69.39%** | `sentiment_ewm_60m` (24.1%) | ✅ Verified |
-| **2026-08-22 (Day 3)** | 906 | 5,235 | 244 (195 / 49) | **61.22%** | `sentiment_ewm_60m` (24.1%) | ✅ Verified |
+| **2026-08-22 (Day 3)** | 906 | 5,235 | 253 (202 / 51) | **68.63%** | `sentiment_ewm_60m` (24.1%) | ✅ Clean Recomputed |
 | **2026-08-23 (Day 4)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-24 (Day 5)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-25 (Day 6)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
