@@ -93,8 +93,6 @@ def measure_event_lag(
     if np.isnan(baseline_vol) or baseline_vol == 0:
         baseline_vol = 0.0005  # minimum floor
         
-    threshold = std_threshold * baseline_vol
-    
     # Scan minute-by-minute in post-event window
     prev_time = time_at_t
     for _, bar in reaction_bars.iterrows():
@@ -104,12 +102,16 @@ def measure_event_lag(
         if step_gap_min > max_allowed_gap_min:
             has_data_gap = True
             
+        t_sec = (cur_time - event_published_at).total_seconds()
+        t_min = max(1.0, t_sec / 60.0)
+        
+        # Random walk drift corrected threshold: std_threshold * baseline_vol * sqrt(t)
+        threshold_t = std_threshold * baseline_vol * np.sqrt(t_min)
         cumulative_return = abs((bar["close"] - price_at_t) / price_at_t)
         
-        if cumulative_return >= threshold:
+        if cumulative_return >= threshold_t:
             # If a data gap occurred prior to detection, flag has_data_gap
-            lag_sec = (cur_time - event_published_at).total_seconds()
-            lag_mins = max(1, int(round(lag_sec / 60.0)))
+            lag_mins = max(1, int(round(t_min)))
             actual_return = (bar["close"] - price_at_t) / price_at_t
             
             return {
@@ -164,6 +166,10 @@ def run_lag_engine(config_path="config.yaml", db_path="data/db.sqlite"):
             "volume": b.volume
         } for b in price_bars])
         
+        # Batch load existing lag measurements for fast in-memory lookup
+        existing_lags = session.query(LagMeasurement).filter_by(ticker=ticker).all()
+        existing_map = {(l.event_id, l.ticker): l for l in existing_lags}
+        
         for event in news_events:
             result = measure_event_lag(
                 event_published_at=event.published_at,
@@ -173,7 +179,7 @@ def run_lag_engine(config_path="config.yaml", db_path="data/db.sqlite"):
                 std_threshold=std_thresh
             )
             
-            existing = session.query(LagMeasurement).filter_by(event_id=event.event_id).first()
+            existing = existing_map.get((event.event_id, ticker))
             if not existing:
                 lag_obj = LagMeasurement(
                     event_id=event.event_id,
@@ -198,7 +204,17 @@ def run_lag_engine(config_path="config.yaml", db_path="data/db.sqlite"):
             elif result["reaction_detected"]:
                 detected_count += 1
                 
-    session.commit()
+    import time
+    for attempt in range(5):
+        try:
+            session.commit()
+            break
+        except Exception as e:
+            session.rollback()
+            if attempt == 4:
+                raise e
+            time.sleep(1)
+            
     session.close()
     
     valid_events = total_measured - gap_count
