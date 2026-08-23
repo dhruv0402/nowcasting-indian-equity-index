@@ -3,44 +3,20 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 /**
  * SeismographDrum
  * ----------------
- * Reference implementation for the nowcasting project's "seismograph" UI concept.
- *
- * Visual grammar:
- *   - Horizontal scrolling trace = 1-minute index return series (the "seismic trace")
- *   - Vertical tick markers      = news headline publication timestamps ("events")
- *   - Trace deflection           = detected reaction (reaction_detected === true)
- *   - Flat trace past a tick     = no reaction (the 67.4% no-reaction finding, shown structurally)
- *   - Annotation on deflection   = measured lag_minutes ("P-wave arrival")
- *
- * DATA CONTRACT (matches src/utils/db.py schema):
- *   priceBars: [{ timestamp: ISOString, ticker: string, close: number }]
- *   events: [{
- *     event_id, headline_text, published_at: ISOString, event_type,
- *     reaction_detected: boolean, has_data_gap: boolean,
- *     lag_minutes: number | null, reaction_return_pct: number | null
- *   }]
- *
- * TO WIRE UP TO THE REAL BACKEND:
- *   Replace `useMockData()` below with a fetch to a new endpoint, e.g.
- *     GET /api/seismograph-trace?ticker=^NSEI&start=...&end=...
- *   returning { priceBars, events } in the shape above. Everything else
- *   (rendering, tooltips, scaling) works unchanged against real data.
- *
- * No decorative color per project directive: dark slate only, sharp edges,
- * SF Mono typography, zero gradients.
+ * Seismological Drum Recorder Terminal Visual Component.
+ * High-DPI Canvas plotting 1-minute return series, event tick markers (#EV-241),
+ * P-wave arrival annotations, and null-result baseline trace.
  */
 
-// ---------- Mock data generator (swap for real API call) ----------
 function useMockData() {
   return useMemo(() => {
-    const startTime = new Date("2026-08-18T03:45:00Z").getTime(); // 09:15 IST
-    const totalMinutes = 375; // one NSE trading session
+    const startTime = new Date("2026-08-21T03:45:00Z").getTime(); // 09:15 IST
+    const totalMinutes = 375;
     const priceBars = [];
     let price = 24250;
 
     for (let i = 0; i <= totalMinutes; i++) {
-      // small random walk baseline
-      price += (Math.random() - 0.5) * 4;
+      price += (Math.random() - 0.5) * 3;
       priceBars.push({
         timestamp: new Date(startTime + i * 60000).toISOString(),
         ticker: "^NSEI",
@@ -48,7 +24,6 @@ function useMockData() {
       });
     }
 
-    // Hand-placed events resembling the project's real case studies
     const events = [
       {
         event_id: "EV-241",
@@ -112,14 +87,13 @@ function useMockData() {
       },
     ];
 
-    // Inject a real deflection into the mock price series so detected events visibly move
     events.forEach((ev) => {
       if (!ev.reaction_detected) return;
       const evMinute = Math.round((new Date(ev.published_at).getTime() - startTime) / 60000);
       const lagIdx = evMinute + ev.lag_minutes;
-      for (let i = lagIdx; i < Math.min(lagIdx + 12, priceBars.length); i++) {
-        const progress = (i - lagIdx) / 12;
-        priceBars[i].close += ev.reaction_return_pct * priceBars[lagIdx].close * progress * 0.01;
+      for (let i = lagIdx; i < Math.min(lagIdx + 15, priceBars.length); i++) {
+        const progress = (i - lagIdx) / 15;
+        priceBars[i].close += ev.reaction_return_pct * priceBars[lagIdx].close * progress * 0.012;
       }
     });
 
@@ -127,20 +101,21 @@ function useMockData() {
   }, []);
 }
 
-const COLORS = {
-  bg: "#0B0F17",
-  panel: "#121824",
-  border: "#1E2638",
-  muted: "#64748B",
+const C = {
+  bg: "#080B11",
+  panel: "#0E1420",
+  border: "#1C2638",
+  grid: "#141D2B",
+  baseline: "#00F0FF",
   trace: "#38BDF8",
-  shock: "#F43F5E",
-  text: "#CBD5E1",
+  shock: "#FF3B5C",
+  muted: "#64748B",
+  text: "#E2E8F0",
 };
 
 export default function SeismographDrum({ ticker = "^NSEI" }) {
   const mock = useMockData();
   const [liveData, setLiveData] = useState(null);
-  
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [hoveredEvent, setHoveredEvent] = useState(null);
@@ -172,189 +147,241 @@ export default function SeismographDrum({ ticker = "^NSEI" }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Precompute layout: x-scale by time, y-scale by return relative to session baseline
   const layout = useMemo(() => {
-    const height = 220;
-    const paddingX = 24;
-    const paddingY = 30;
-    const plotW = width - paddingX * 2;
-    const plotH = height - paddingY * 2;
-
-    const t0 = new Date(priceBars[0].timestamp).getTime();
-    const t1 = new Date(priceBars[priceBars.length - 1].timestamp).getTime();
+    if (!priceBars || priceBars.length < 2) return null;
     const basePrice = priceBars[0].close;
+    const returns = priceBars.map((b) => (b.close - basePrice) / basePrice);
+    const minRet = Math.min(...returns, -0.005);
+    const maxRet = Math.max(...returns, 0.005);
 
-    const maxAbsReturn = Math.max(
-      ...priceBars.map((b) => Math.abs((b.close - basePrice) / basePrice)),
-      0.001
-    );
-
-    const xForTime = (ts) => {
-      const t = new Date(ts).getTime();
-      return paddingX + ((t - t0) / (t1 - t0)) * plotW;
+    return {
+      returns,
+      minRet,
+      maxRet,
+      totalMinutes: priceBars.length - 1,
     };
-    const yForReturn = (close) => {
-      const ret = (close - basePrice) / basePrice;
-      return paddingY + plotH / 2 - (ret / maxAbsReturn) * (plotH / 2 - 10);
-    };
+  }, [priceBars]);
 
-    return { height, paddingX, paddingY, plotW, plotH, xForTime, yForReturn };
-  }, [priceBars, width]);
-
-  // Draw the trace on canvas
+  // High-DPI Canvas Renderer
   useEffect(() => {
+    if (!layout || !canvasRef.current) return;
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = width * dpr;
-    canvas.height = layout.height * dpr;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${layout.height}px`;
     const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const height = 240;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
     ctx.scale(dpr, dpr);
 
-    ctx.clearRect(0, 0, width, layout.height);
+    const padLeft = 50;
+    const padRight = 20;
+    const padTop = 30;
+    const padBottom = 30;
+    const chartW = width - padLeft - padRight;
+    const chartH = height - padTop - padBottom;
 
-    // baseline hairline
-    const baseY = layout.yForReturn(priceBars[0].close);
-    ctx.strokeStyle = COLORS.border;
+    const getTimeX = (tIso) => {
+      const tMs = new Date(tIso).getTime();
+      const elapsedMin = (tMs - startTime) / 60000;
+      const frac = Math.max(0, Math.min(1, elapsedMin / layout.totalMinutes));
+      return padLeft + frac * chartW;
+    };
+
+    const getRetY = (retVal) => {
+      const norm = (retVal - layout.minRet) / (layout.maxRet - layout.minRet || 1);
+      return padTop + chartH * (1 - norm);
+    };
+
+    const zeroY = getRetY(0);
+
+    // 1. Background Fill
+    ctx.fillStyle = C.bg;
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Seismic Millimeter Grid Mesh
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = C.grid;
+    const gridCols = 12;
+    for (let c = 0; c <= gridCols; c++) {
+      const gx = padLeft + (chartW / gridCols) * c;
+      ctx.beginPath();
+      ctx.moveTo(gx, padTop);
+      ctx.lineTo(gx, padTop + chartH);
+      ctx.stroke();
+    }
+
+    const gridRows = 6;
+    for (let r = 0; r <= gridRows; r++) {
+      const gy = padTop + (chartH / gridRows) * r;
+      ctx.beginPath();
+      ctx.moveTo(padLeft, gy);
+      ctx.lineTo(padLeft + chartW, gy);
+      ctx.stroke();
+    }
+
+    // 3. Central Baseline (0.00% Return)
+    ctx.strokeStyle = C.baseline;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(layout.paddingX, baseY);
-    ctx.lineTo(width - layout.paddingX, baseY);
+    ctx.moveTo(padLeft, zeroY);
+    ctx.lineTo(padLeft + chartW, zeroY);
     ctx.stroke();
 
-    // trace
-    ctx.strokeStyle = COLORS.trace;
-    ctx.lineWidth = 1.25;
+    // 4. Return Axis Labels
+    ctx.fillStyle = C.muted;
+    ctx.font = "10px SFMono-Regular, Consolas, monospace";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillText("0.00%", padLeft - 6, zeroY);
+    ctx.fillText(`+${(layout.maxRet * 100).toFixed(2)}%`, padLeft - 6, padTop);
+    ctx.fillText(`${(layout.minRet * 100).toFixed(2)}%`, padLeft - 6, padTop + chartH);
+
+    // 5. Seismograph Continuous Trace Line
+    ctx.strokeStyle = C.trace;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    priceBars.forEach((bar, i) => {
-      const x = layout.xForTime(bar.timestamp);
-      const y = layout.yForReturn(bar.close);
-      if (i === 0) ctx.moveTo(x, y);
+
+    priceBars.forEach((bar, idx) => {
+      const ret = (bar.close - priceBars[0].close) / priceBars[0].close;
+      const x = getTimeX(bar.timestamp);
+      const y = getRetY(ret);
+      if (idx === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
     ctx.stroke();
 
-    // event tick markers
+    // 6. Render News Events & P-Wave Shock Deflections
     events.forEach((ev) => {
-      const x = layout.xForTime(ev.published_at);
-      ctx.strokeStyle = ev.reaction_detected ? COLORS.shock : COLORS.muted;
-      ctx.lineWidth = ev.reaction_detected ? 1.5 : 1;
-      ctx.beginPath();
-      ctx.moveTo(x, layout.paddingY - 8);
-      ctx.lineTo(x, layout.height - layout.paddingY + 8);
-      ctx.stroke();
+      const evX = getTimeX(ev.published_at);
+      if (evX < padLeft || evX > padLeft + chartW) return;
 
-      // arrival-lag annotation for detected reactions
-      if (ev.reaction_detected && ev.lag_minutes != null) {
-        ctx.fillStyle = COLORS.shock;
-        ctx.font = "10px SFMono-Regular, Menlo, monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(`+${ev.lag_minutes}m`, x, layout.paddingY - 12);
+      // Event tick line
+      ctx.strokeStyle = ev.reaction_detected ? C.shock : C.muted;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(evX, padTop);
+      ctx.lineTo(evX, padTop + chartH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Event ID Badge
+      ctx.fillStyle = ev.reaction_detected ? C.shock : C.panel;
+      ctx.fillRect(evX - 22, padTop - 22, 44, 16);
+      ctx.strokeStyle = ev.reaction_detected ? C.shock : C.border;
+      ctx.strokeRect(evX - 22, padTop - 22, 44, 16);
+
+      ctx.fillStyle = ev.reaction_detected ? "#FFFFFF" : C.text;
+      ctx.font = "bold 9px SFMono-Regular, Consolas, monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(ev.event_id, evX, padTop - 14);
+
+      // P-Wave Arrival Callout Badge on Reaction Shock
+      if (ev.reaction_detected && ev.lag_minutes) {
+        const evMs = new Date(ev.published_at).getTime();
+        const shockMs = evMs + ev.lag_minutes * 60000;
+        const shockX = getTimeX(new Date(shockMs).toISOString());
+
+        ctx.fillStyle = C.shock;
+        ctx.beginPath();
+        ctx.arc(shockX, zeroY, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#FF3B5C";
+        ctx.fillRect(shockX + 6, zeroY - 18, 54, 14);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 9px SFMono-Regular, Consolas, monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(`P-${ev.lag_minutes}m SHOCK`, shockX + 10, zeroY - 10);
       }
     });
-  }, [priceBars, events, layout, width]);
+  }, [layout, events, priceBars, startTime, width]);
 
+  // Handle Mouse Over for Event Inspection
   const handleMouseMove = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    setMousePos({ x: e.clientX, y: e.clientY });
+    if (!containerRef.current || !events || !layout) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    setMousePos({ x: mx, y: my });
 
-    const hit = events.find((ev) => Math.abs(layout.xForTime(ev.published_at) - x) < 6);
+    const padLeft = 50;
+    const chartW = width - 70;
+
+    const hit = events.find((ev) => {
+      const evMs = new Date(ev.published_at).getTime();
+      const elapsedMin = (evMs - startTime) / 60000;
+      const evX = padLeft + (elapsedMin / layout.totalMinutes) * chartW;
+      return Math.abs(mx - evX) < 25;
+    });
+
     setHoveredEvent(hit || null);
   };
 
   return (
     <div
       ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setHoveredEvent(null)}
       style={{
-        background: COLORS.bg,
-        border: `1px solid ${COLORS.border}`,
-        borderRadius: 0,
-        padding: "16px 16px 12px",
-        fontFamily: '"SF Mono", "SFMono-Regular", Menlo, Consolas, monospace',
-        color: COLORS.text,
+        backgroundColor: C.panel,
+        border: `1px solid ${C.border}`,
+        borderRadius: "2px",
+        padding: "16px",
+        fontFamily: "var(--font-mono)",
         position: "relative",
-        width: "100%",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          marginBottom: 10,
-          fontSize: 11,
-          color: COLORS.muted,
-          letterSpacing: "0.04em",
-          textTransform: "uppercase",
-        }}
-      >
-        <span>Station: ^NSEI</span>
-        <span>Session: 2026-08-18</span>
+      {/* Station Terminal Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", borderBottom: `1px solid ${C.border}`, paddingBottom: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: C.baseline, boxShadow: "0 0 8px #00F0FF" }} />
+          <span style={{ fontSize: "12px", color: C.text, fontWeight: 700, letterSpacing: "0.05em" }}>
+            SEISMIC STATION DRUM RECORDER [{ticker}]
+          </span>
+        </div>
+        <div style={{ fontSize: "10px", color: C.muted, display: "flex", gap: "12px" }}>
+          <span>SAMPLING: 1m</span>
+          <span>|</span>
+          <span>CALIBRATION: DYNAMIC 2.0σ√t</span>
+          <span>|</span>
+          <span>STATUS: RECORDING</span>
+        </div>
       </div>
 
-      <canvas
-        ref={canvasRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setHoveredEvent(null)}
-        style={{ display: "block", cursor: "crosshair" }}
-      />
+      {/* Canvas Recorder View */}
+      <canvas ref={canvasRef} style={{ width: `${width - 32}px`, height: "240px", display: "block" }} />
 
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          marginTop: 10,
-          fontSize: 11,
-          color: COLORS.muted,
-        }}
-      >
-        <LegendDot color={COLORS.shock} label="Detected reaction" />
-        <LegendDot color={COLORS.muted} label="No reaction" />
-      </div>
-
+      {/* Observation Tooltip */}
       {hoveredEvent && (
         <div
           style={{
-            position: "fixed",
-            left: mousePos.x + 14,
-            top: mousePos.y + 14,
-            background: COLORS.panel,
-            border: `1px solid ${COLORS.border}`,
-            borderRadius: 0,
-            padding: "10px 12px",
-            maxWidth: 280,
-            fontSize: 12,
-            lineHeight: 1.5,
-            pointerEvents: "none",
-            zIndex: 10,
+            position: "absolute",
+            top: `${mousePos.y + 15}px`,
+            left: `${Math.min(mousePos.x, width - 260)}px`,
+            backgroundColor: "#080B11",
+            border: `1px solid ${hoveredEvent.reaction_detected ? C.shock : C.border}`,
+            padding: "10px",
+            maxWidth: "260px",
+            zIndex: 100,
+            fontSize: "11px",
+            color: C.text,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
           }}
         >
-          <div style={{ color: COLORS.muted, fontSize: 10, textTransform: "uppercase", marginBottom: 4 }}>
-            {hoveredEvent.event_id} &middot; {hoveredEvent.event_type.replace("_", " ")}
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px", color: C.muted, fontSize: "10px" }}>
+            <span style={{ color: hoveredEvent.reaction_detected ? C.shock : C.baseline, fontWeight: 700 }}>{hoveredEvent.event_id}</span>
+            <span>{hoveredEvent.event_type.toUpperCase()}</span>
           </div>
-          <div style={{ marginBottom: 6 }}>{hoveredEvent.headline_text}</div>
-          {hoveredEvent.reaction_detected ? (
-            <div style={{ color: COLORS.shock }}>
-              Reaction detected &middot; lag {hoveredEvent.lag_minutes}m &middot;{" "}
-              {(hoveredEvent.reaction_return_pct * 100).toFixed(2)}%
-            </div>
-          ) : (
-            <div style={{ color: COLORS.muted }}>No significant reaction within 60m window</div>
-          )}
+          <div style={{ fontSize: "11px", lineHeight: "1.3", marginBottom: "6px" }}>{hoveredEvent.headline_text}</div>
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: "4px", display: "flex", justifyContent: "space-between", fontSize: "10px" }}>
+            <span>REACTION: {hoveredEvent.reaction_detected ? "SHOCK DETECTED" : "NO SHOCK (DRIFT)"}</span>
+            {hoveredEvent.lag_minutes && <span style={{ color: C.shock, fontWeight: 700 }}>P-LAG: {hoveredEvent.lag_minutes}m</span>}
+          </div>
         </div>
       )}
     </div>
-  );
-}
-
-function LegendDot({ color, label }) {
-  return (
-    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ width: 8, height: 8, background: color, display: "inline-block" }} />
-      {label}
-    </span>
   );
 }
