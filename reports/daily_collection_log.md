@@ -22,7 +22,7 @@
 
 | Log Date | Canonical Headlines | Total Price Bars | Clean Events (Train / Test) | Valid Pairs (NSEI / BSESN) | Model Test Accuracy | Naive Baseline (Flat) | **Net Excess Alpha Lift** | Top Predictive Feature | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **2026-08-23 (Day 1)** | 946 | 5,235 | 265 (212 / 53) | 527 (265 / 262) | **70.59%** | **82.35%** | **-11.76%** | `sentiment_ewm_60m` (24.1%) | 🟢 Epoch Baseline Established |
+| **2026-08-23 (Day 1)** | 946 | 5,235 | 265 (212 / 53) | 527 (265 / 262) | **70.59%** | **82.35%** | **-11.76%** | `sentiment_ewm_60m` (24.1%) | 🟢 Epoch Baseline Established* |
 | **2026-08-24 (Day 2)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-25 (Day 3)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-26 (Day 4)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
@@ -33,9 +33,12 @@
 | **2026-08-31 (Day 9)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-09-01 (Day 10)**| *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 
+*\*Day 1 Baseline Note (Aug 23): Computed from clean cumulative market data up to Friday Aug 21 close (logged Sunday Aug 23 during weekend trading pause).*
+
 ---
 
 ### 📝 Tracking Protocol & Rules
 1. **Daily Execution:** `.github/workflows/evaluator.yml` executes automatically at 00:00 UTC (05:30 AM IST).
 2. **Apples-to-Apples Evaluation:** Every daily entry MUST report both Model Accuracy and Naive Flat Baseline on the exact same test set.
 3. **No Retrospective Editing:** Once a day's row is logged, it remains fixed to preserve authentic sample accumulation history over the 14-day runway toward the Sept 5–10 deadline.
+4. **Mid-Epoch Bug Protocol:** If a bug is discovered affecting already-logged rows, the fix is dated and noted in a new addendum footnote—existing rows are annotated as "known-affected, see addendum," never silently altered or deleted.
