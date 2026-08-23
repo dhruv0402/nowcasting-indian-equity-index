@@ -1,38 +1,41 @@
-# 📅 7-Day Progressive Data Collection & Model Evaluation Log
+# 7-Day Progressive Cloud Data Collection & Daily Evaluation Log
 
-A 24-hour daily audit tracking continuous cloud data collection in **Supabase PostgreSQL** and chronological **XGBoost Nowcasting Model** performance.
-
----
-
-## 📊 Summary Table of Daily Progression
-
-| Log Date | Canonical Headlines | Total Price Bars | Clean Events (Train / Test) | Model Accuracy | Naive Baseline (Flat) | Net Excess Alpha Lift | Top Predictive Feature | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **2026-08-20 (Day 1)** | 516 | 5,646 | 90 (72 / 18) | **50.00%** | **55.56%** | **-5.56%** | `news_velocity_15m` (15.8%) | ✅ Verified |
-| **2026-08-21 (Day 2)** | 796 | 5,169 | 244 (195 / 49) | **69.39%** | **81.63%** | **-12.24%** | `sentiment_ewm_60m` (24.1%) | ✅ Verified |
-| **2026-08-22 (Day 3)** | 920 | 5,235 | 265 (212 / 53) | **72.55%** | **80.39%** | **-7.84%** | `sentiment_ewm_60m` (24.1%) | 🟢 Weekend (NSE Closed) |
-| **2026-08-23 (Day 4)** | 946 | 5,235 | 265 (212 / 53) | **70.59%** | **82.35%** | **-11.76%** | `sentiment_ewm_60m` (24.1%) | 🟢 Weekend (NSE Closed) |
-| **2026-08-24 (Day 5)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
-| **2026-08-25 (Day 6)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
-| **2026-08-26 (Day 7)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+**Project:** Nowcasting Indian Equity Index Moves (`^NSEI` / `^BSESN`)  
+**Data Infrastructure:** Supabase Cloud PostgreSQL  
+**Automation:** GitHub Actions (`collector.yml` 24/7 Daemon & `evaluator.yml` Daily Run)  
+**Methodology Epoch:** Clean Measurement Era (Post-Timezone & Post-Drift Correction)  
 
 ---
 
-## 📝 Detailed Daily Audit Logs
+### ⚠️ Note on Data Provenance & Methodology Boundary
 
-### 🔹 Day 1 — 2026-08-20 02:20 UTC
-- **Cloud Database State:** Supabase PostgreSQL (`aws-0-ap-northeast-2.pooler.supabase.com:6543`)
-- **Headline Ingestion:** 339 canonical news headlines
-- **Price Bar Ingestion:** 4,849 minute bars (`^NSEI`: 2,428, `^BSESN`: 2,421)
-- **Empirical Reaction Lag:** 3 to 13 minutes (Median: 6 minutes)
-- **Model Evaluation:**
-  - **Clean In-Session Sample Size:** 54 clean events (43 Train / 11 Test)
-  - **Chronological Test Accuracy:** **80.0%** (12 / 15 correct on test set)
-  - **Naive Majority-Class Baseline:** **80.0%** (12 / 15 correct; 100% `flat` predictions)
-  - **Model Alpha Lift Over Naive Baseline:** **0.0%** (Zero excess predictive lift; pending multi-week accumulation)
-  - **Binomial $p$-value (vs 50% chance):** $p = 0.0176$ *(driven by majority-class balance)*
-  - **Top Feature Importances:**
-    1. `sentiment_ewm_60m` (25.67%)
-    2. `pre_event_volatility` (16.99%)
-    3. `news_velocity_30m` (14.44%)
-- **Observations:** 60-minute exponential moving average headline sentiment (`sentiment_ewm_60m`) is the single strongest predictor of index movement.
+> **Methodological Boundary Established August 23, 2026:**  
+> Prior to August 23, 2026, the data collection pipeline underwent two major bug fixes:
+> 1. **Timezone Conversion Fix (`price_collector.py`):** Converted `yfinance` `Asia/Kolkata` intraday timestamps to UTC before stripping timezone metadata (`9c26a9e`).
+> 2. **Random Walk Drift Correction (`lag_engine.py`):** Upgraded static $2 \sigma_{\text{1m}}$ thresholds to adaptive $\text{Threshold}(t) = 2.0 \times \sigma_{\text{base}} \times \sqrt{t}$ thresholds to account for Brownian motion variance growth over time.
+> 
+> To prevent mixing invalid pre-fix measurements with clean post-fix data, **all pre-fix historical rows from August 20–22 have been excluded**. The 7-Day Progressive Tracking Log begins cleanly on **August 23, 2026 as Day 1 of the Clean Measurement Era**.
+
+---
+
+### 📊 Clean Measurement Era Tracking Log (Aug 23 – Sept 5, 2026)
+
+| Log Date | Canonical Headlines | Total Price Bars | Clean Events (Train / Test) | Valid Pairs (NSEI / BSESN) | Model Test Accuracy | Naive Baseline (Flat) | **Net Excess Alpha Lift** | Top Predictive Feature | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **2026-08-23 (Day 1)** | 946 | 5,235 | 265 (212 / 53) | 527 (265 / 262) | **70.59%** | **82.35%** | **-11.76%** | `sentiment_ewm_60m` (24.1%) | 🟢 Epoch Baseline Established |
+| **2026-08-24 (Day 2)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-08-25 (Day 3)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-08-26 (Day 4)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-08-27 (Day 5)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-08-28 (Day 6)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-08-29 (Day 7)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-08-30 (Day 8)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-08-31 (Day 9)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-09-01 (Day 10)**| *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+
+---
+
+### 📝 Tracking Protocol & Rules
+1. **Daily Execution:** `.github/workflows/evaluator.yml` executes automatically at 00:00 UTC (05:30 AM IST).
+2. **Apples-to-Apples Evaluation:** Every daily entry MUST report both Model Accuracy and Naive Flat Baseline on the exact same test set.
+3. **No Retrospective Editing:** Once a day's row is logged, it remains fixed to preserve authentic sample accumulation history over the 14-day runway toward the Sept 5–10 deadline.
