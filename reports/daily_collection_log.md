@@ -6,12 +6,12 @@ A 24-hour daily audit tracking continuous cloud data collection in **Supabase Po
 
 ## 📊 Summary Table of Daily Progression
 
-| Log Date | Canonical Headlines | Total Price Bars | Clean Events (Train / Test) | Chronological Accuracy | Top Predictive Feature | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **2026-08-20 (Day 1)** | 516 | 5,646 | 90 (72 / 18) | **50.00%** | `news_velocity_15m` (15.8%) | ✅ Verified |
-| **2026-08-21 (Day 2)** | 796 | 5,169 | 244 (195 / 49) | **69.39%** | `sentiment_ewm_60m` (24.1%) | ✅ Verified |
-| **2026-08-22 (Day 3)** | 920 | 5,235 | 255 (204 / 51) | **72.55%** | `sentiment_ewm_60m` (24.1%) | ✅ Drift Corrected |
-| **2026-08-23 (Day 4)** | 946 | 5,235 | 255 (204 / 51) | **70.59%** | `sentiment_ewm_60m` (24.1%) | ✅ Verified |
+| Log Date | Canonical Headlines | Total Price Bars | Clean Events (Train / Test) | Model Accuracy | Naive Baseline (Flat) | Net Excess Alpha Lift | Top Predictive Feature | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **2026-08-20 (Day 1)** | 516 | 5,646 | 90 (72 / 18) | **50.00%** | **55.56%** | **-5.56%** | `news_velocity_15m` (15.8%) | ✅ Verified |
+| **2026-08-21 (Day 2)** | 796 | 5,169 | 244 (195 / 49) | **69.39%** | **81.63%** | **-12.24%** | `sentiment_ewm_60m` (24.1%) | ✅ Verified |
+| **2026-08-22 (Day 3)** | 920 | 5,235 | 255 (204 / 51) | **72.55%** | **80.39%** | **-7.84%** | `sentiment_ewm_60m` (24.1%) | 🟢 Weekend (NSE Closed) |
+| **2026-08-23 (Day 4)** | 946 | 5,235 | 255 (204 / 51) | **70.59%** | **82.35%** | **-11.76%** | `sentiment_ewm_60m` (24.1%) | 🟢 Weekend (NSE Closed) |
 | **2026-08-24 (Day 5)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-25 (Day 6)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-26 (Day 7)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |

@@ -2,7 +2,7 @@
 
 **To:** Incoming Agent / Reviewer (Claude)  
 **From:** Antigravity AI Pair Engineer  
-**Date:** August 23, 2026 (02:10 AM IST)  
+**Date:** August 23, 2026 (03:55 PM IST)  
 **Project Location:** `/Users/dhruvgourisaria/nowcasting-project`  
 **GitHub Repository:** [`https://github.com/dhruv0402/nowcasting-indian-equity-index.git`](https://github.com/dhruv0402/nowcasting-indian-equity-index.git)  
 **Database Infrastructure:** Supabase Cloud PostgreSQL (`aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres`)  
@@ -11,31 +11,41 @@
 
 ## 1. Executive Summary
 
-Over the past **3 days (August 20 – August 22, 2026)**, the project completed a major architectural scale-up from single-laptop testing to a fully automated **24/7 Cloud Ingestion & Modeling Pipeline** deployed on **GitHub Actions** and backed by **Supabase Cloud PostgreSQL**.
+Over the past **4 days (August 20 – August 23, 2026)**, the project completed a major architectural scale-up from single-laptop testing to a fully automated **24/7 Cloud Ingestion & Modeling Pipeline** deployed on **GitHub Actions** and backed by **Supabase Cloud PostgreSQL**.
 
-Key 3-day achievements include:
-1. **Canonical Headlines:** Expanded from 516 to **920 canonical news headlines** (+78.3% growth).
-2. **Clean In-Session Reactions:** Expanded to **255 clean in-session events** (204 Train / 51 Test events, +183% growth).
+### ⚠️ Primary Statistical Verdict: Net Excess Alpha Lift is Currently Negative (-11.76%)
+- **Model Test Accuracy:** **70.59% (36 / 51 correct)** on the chronological test set ($n = 51$).
+- **Naive Majority-Class Baseline (`always predict flat`):** **82.35% (42 / 51 actual flat outcomes)**.
+- **Net Excess Alpha Lift:** **-11.76% (Model underperforms the naive baseline by 11.76 percentage points)**.
+- **Context:** Low-volatility Friday market consolidation caused 82.35% of test outcomes to stay within $\pm 0.05\%$. Predicting any directional `up` or `down` swings that fall short of 0.05% incurs a penalty against the naive flat baseline.
+
+Key 4-day achievements include:
+1. **Canonical Headlines:** Expanded from 516 to **946 canonical news headlines** (+83.3% growth).
+2. **Clean In-Session Events:** Expanded to **255 clean in-session events** (204 Train / 51 Test events, +183% growth).
 3. **Timezone Bug & Random Walk Drift Correction:**
    - Resolved a 5.5-hour timezone offset bug in `price_collector.py`.
    - Upgraded `src/features/lag_engine.py` to use a statistically adaptive threshold $\text{Threshold}(t) = 2.0 \times \sigma_{\text{base}} \times \sqrt{t}$ that explicitly accounts for random walk drift over time $t$.
-4. **Verified Lag Distribution:**
+4. **Verified Lag Distribution ($n = 527$ valid pairs across `^NSEI` & `^BSESN`):**
    - **No Excess Reaction Rate:** **67.4% (355 out of 527 valid pairs)** produced no excess market shock above random walk drift.
    - **Genuine Market Shocks ($\ge 2.0 \sigma \sqrt{t}$):** **32.6% (172 pairs)**.
    - **Median Reaction Lag for Genuine Shocks:** **2.0 minutes** (Mean: 5.4 minutes).
-5. **Model Performance:** On the 100% clean drift-corrected test set ($n = 51$), XGBoost achieved **72.55% chronological test accuracy** (37 / 51 correct).
 
 ---
 
-## 2. 3-Day Data Accumulation & Performance Log
+## 2. 4-Day Progressive Data & Model Metrics (Aug 20 – Aug 23, 2026)
 
-| Metric | Day 1 (Aug 20) | Day 2 (Aug 21) | **Day 3 (Aug 22 - Drift Corrected)** | Net 3-Day Growth |
-| :--- | :--- | :--- | :--- | :--- |
-| **Canonical Headlines** | 516 headlines | 796 headlines | **920 headlines** | 📈 **+404 Headlines** (+78.3%) |
-| **1-Minute Price Bars** | 5,646 bars | 5,169 bars | **5,235 bars** | 🧹 Wiped & Re-ingested (UTC) |
-| **Clean Reaction Events (Headline-Level)** | 90 events | 244 events | **255 events** (204 Train / 51 Test) | 🚀 **+165 Clean Events** (+183%) |
-| **Chronological Accuracy** | 50.00% | 69.39% | **72.55% (37 / 51 correct)** | 📊 **+22.55% Accuracy Lift** |
-| **Top Predictive Feature** | `news_velocity_15m` | `sentiment_ewm_60m` | **`sentiment_ewm_60m` (24.1%)** | 🥇 **60m EMA Sentiment** |
+| Metric | Day 1 (Aug 20) | Day 2 (Aug 21) | Day 3 (Aug 22) | **Day 4 (Aug 23 Today)** | 4-Day Progression |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Canonical Headlines** | 516 headlines | 796 headlines | 920 headlines | **946 headlines** | 📈 **+430 Headlines** (+83.3%) |
+| **1-Minute Price Bars** | 5,646 bars | 5,169 bars | 5,235 bars | **5,235 bars** | 🟢 Weekend (NSE Closed) |
+| **Clean Reaction Events (Headline-Level)** | 90 events | 244 events | 255 events | **255 events** (204 Train / 51 Test) | 🚀 **+165 Clean Events** (+183%) |
+| **Valid Pairs in `lag_measurements`** | 180 pairs | 490 pairs | 525 pairs | **527 pairs** (255 `^NSEI` + 272 `^BSESN`) | 📊 Pair-Level Aggregation |
+| **Model Test Accuracy** | 50.00% | 69.39% | 72.55% | **70.59% (36 / 51 correct)** | 📊 Raw Model Metric |
+| **Naive Majority Baseline (Flat)** | **55.56%** | **81.63%** | **80.39%** | **82.35% (42 / 51 flat)** | 🎯 Trivial Flat Baseline |
+| **Net Excess Alpha Lift** | **-5.56%** | **-12.24%** | **-7.84%** | **-11.76%** | ⚠️ Model vs Baseline Edge |
+| **Top Predictive Feature** | `news_velocity_15m` | `sentiment_ewm_60m` | `sentiment_ewm_60m` | **`sentiment_ewm_60m` (24.1% weight)** | 🥇 **60m EMA Sentiment** |
+
+*Note on Aug 22–23 Bar Growth:* Indian stock exchanges (NSE/BSE) were closed for the weekend on Aug 22–23, so 0 new intraday price bars were generated (expected behavior). Headline ingestion continued 24/7.
 
 ---
 
@@ -54,7 +64,7 @@ Key 3-day achievements include:
   ```
 - **Reconciled Data Definitions:**
   - **255 clean events** = Unique `NewsEvent` records occurring during live market hours (headline-level).
-  - **527 valid pairs** = Unique `(event_id, ticker)` records in `lag_measurements` across both NIFTY 50 (`^NSEI`) and SENSEX (`^BSESN`) ($255 \times 2 = 510$ to $527$ pairs).
+  - **527 valid pairs** = Unique `(event_id, ticker)` records in `lag_measurements` across both NIFTY 50 (`^NSEI`) and SENSEX (`^BSESN`) ($255 \text{ `^NSEI` pairs} + 272 \text{ `^BSESN` pairs} = 527 \text{ total pairs}$).
 - **Verified Lag Metrics ($n = 527$ valid pairs):**
   - **No Excess Reaction (Within Random Walk Drift):** **355 pairs (67.4%)**
   - **Genuine Excess Market Shocks ($\ge 2.0 \sigma \sqrt{t}$):** **172 pairs (32.6%)**
@@ -67,13 +77,14 @@ Key 3-day achievements include:
 
 ## 4. Machine Learning & Methodological Takeaways
 
-1. **Prediction Diversity:** XGBoost predictions on the test set are well-distributed across directional classes with **72.55% chronological test accuracy**.
+1. **Prediction Diversity:** XGBoost predictions on the test set are well-distributed across directional classes.
 2. **Feature Importance Rankings:** `sentiment_ewm_60m` (24.1% weight) remains the single strongest predictor of 15-minute price moves.
-3. **Small-Sample Sensitivity Analysis ($n = 51$ Test Events):** With $n=51$ test events, 1 event carries a **1.96% weight** in total accuracy. We expect variance to decrease as sample size expands over the 14-day runway, though the exact rate of stabilization is unknown.
+3. **Small-Sample Sensitivity Analysis ($n = 51$ Test Events):** With $n=51$ test events, 1 event carries a **1.96% weight** in total accuracy.
 
 ---
 
 ## 5. Current Status & Next Steps
 
 - **System Health:** 100% operational. Cloud ingestion and daily evaluation are fully automated in GitHub Actions.
-- **Git State:** All code changes in `src/features/lag_engine.py`, `reports/daily_collection_log.md`, and `reports/handoff_report_for_claude.md` are committed and pushed to `main`.
+- **Primary Verdict:** Net Excess Alpha Lift is **-11.76%**. The model currently underperforms the trivial "always predict flat" baseline because 82.35% of test outcomes were flat during Friday's low-volatility consolidation.
+- **Git State:** All code changes in `src/features/lag_engine.py`, `reports/daily_collection_log.md`, `reports/claude_progress_update.md`, and `reports/handoff_report_for_claude.md` are committed and pushed to `main`.
