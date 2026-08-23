@@ -28,10 +28,6 @@
 - Replaces standard KPI cards with a vertical seismic magnitude gauge calibrated against `reaction_return_pct` distribution ($\text{Magnitude} = \log_{10}(|\Delta P| / \sigma_{\text{base}})$).
 - Historical shocks cluster along tick marks on the scale, visually reinforcing that 67.4% of events land near zero magnitude.
 
-> ⚠️ **CRITICAL METHODOLOGICAL DISTINCTION (VIVA DEFENSE NOTE):**  
-> The magnitude formula above ($\log_{10}(|\Delta P| / \sigma_{\text{base}})$) is strictly a **frontend display transformation** designed for log-compressing return ranges onto a visual 0-to-5 gauge.  
-> It is **NOT** the statistical significance test. The project's actual detection criterion is the **$\sqrt{t}$ random walk drift-corrected threshold** ($\text{Threshold}(t) = 2.0 \times \sigma_{\text{base}} \times \sqrt{t}$) implemented in `src/features/lag_engine.py`. Never confuse the UI display score with the underlying mathematical detection engine!
-
 ### Component 3: Monitoring Station Control Panel (`StationControls.jsx`)
 - **Station Selector:** Toggle between Stations `^NSEI` (NIFTY 50) and `^BSESN` (SENSEX 30).
 - **Tremor Classification Filter:** Filter by event class (`MONETARY_POLICY`, `EARNINGS`, `GEOPOLITICAL`, `MACRO_TAX`).
