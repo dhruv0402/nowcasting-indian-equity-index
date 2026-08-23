@@ -180,7 +180,7 @@ def get_case_studies():
     for news, lag in query.all():
         ist_pub = news.published_at + ist_offset
         records.append({
-            "event_id": news.event_id,
+            "event_id": f"EV-{news.event_id}",
             "published_at": ist_pub.strftime("%Y-%m-%d %I:%M %p IST"),
             "category": news.event_type.upper(),
             "headline": news.headline_text,
@@ -192,3 +192,55 @@ def get_case_studies():
         
     session.close()
     return records
+
+@app.get("/api/seismograph-trace")
+def get_seismograph_trace(ticker: str = Query("^NSEI")):
+    session = get_session()
+    
+    # Query price bars sorted by timestamp
+    bars = (
+        session.query(PriceBar)
+        .filter(PriceBar.ticker == ticker)
+        .order_by(PriceBar.timestamp.asc())
+        .limit(400)
+        .all()
+    )
+    
+    # Query events & lag measurements
+    query = (
+        session.query(NewsEvent, LagMeasurement)
+        .join(LagMeasurement, NewsEvent.event_id == LagMeasurement.event_id)
+        .filter(LagMeasurement.ticker == ticker, LagMeasurement.has_data_gap == False)
+        .order_by(NewsEvent.published_at.asc())
+        .all()
+    )
+    
+    price_bars_data = []
+    for b in bars:
+        price_bars_data.append({
+            "timestamp": b.timestamp.isoformat() + "Z",
+            "ticker": b.ticker,
+            "close": float(b.close)
+        })
+        
+    events_data = []
+    for news, lag in query:
+        events_data.append({
+            "event_id": f"EV-{news.event_id}",
+            "headline_text": news.headline_text,
+            "published_at": news.published_at.isoformat() + "Z",
+            "event_type": news.event_type,
+            "reaction_detected": bool(lag.reaction_detected),
+            "has_data_gap": bool(lag.has_data_gap),
+            "lag_minutes": lag.lag_minutes if lag.reaction_detected else None,
+            "reaction_return_pct": float(lag.reaction_return_pct) if lag.reaction_return_pct else None
+        })
+        
+    session.close()
+    
+    return {
+        "ticker": ticker,
+        "priceBars": price_bars_data,
+        "events": events_data
+    }
+

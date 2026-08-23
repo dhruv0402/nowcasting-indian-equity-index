@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
 } from 'recharts';
+import SeismographDrum from './SeismographDrum';
 import './App.css';
 
 const API_BASE = 'http://localhost:8000/api';
@@ -10,7 +11,7 @@ export default function App() {
   const [ticker, setTicker] = useState('^NSEI');
   const [slippageBps, setSlippageBps] = useState(5.0);
   const [flatFeeInr, setFlatFeeInr] = useState(20.0);
-  const [activeTab, setActiveTab] = useState('lag');
+  const [activeTab, setActiveTab] = useState('seismograph');
 
   const [metadata, setMetadata] = useState({ is_synthetic: false, events_count: 0, price_bars_count: 0 });
   const [metrics, setMetrics] = useState(null);
@@ -160,6 +161,12 @@ export default function App() {
           {/* Navigation Tabs */}
           <div className="tab-bar">
             <button
+              className={`tab-button ${activeTab === 'seismograph' ? 'active' : ''}`}
+              onClick={() => setActiveTab('seismograph')}
+            >
+              📡 Live Seismograph Trace
+            </button>
+            <button
               className={`tab-button ${activeTab === 'lag' ? 'active' : ''}`}
               onClick={() => setActiveTab('lag')}
             >
@@ -183,9 +190,33 @@ export default function App() {
               className={`tab-button ${activeTab === 'cases' ? 'active' : ''}`}
               onClick={() => setActiveTab('cases')}
             >
-              Case Studies ({caseStudies.length})
+              Seismic Bulletin ({caseStudies.length})
             </button>
           </div>
+
+          {/* Tab 0: Live Seismograph Trace */}
+          {activeTab === 'seismograph' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <SeismographDrum ticker={ticker} />
+              
+              {/* Quiet Session Panel demonstrating 67.4% null result */}
+              <div className="panel-box" style={{ background: '#0B0F17', borderColor: '#1E2638' }}>
+                <div className="panel-header" style={{ color: '#64748B', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Station Baseline: Typical Consolidation Session (67.4% Null Activity Proof)
+                </div>
+                <div style={{ margin: '12px 0 6px 0', height: '2px', backgroundColor: '#1E2638', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: '-4px', left: '20%', width: '2px', height: '10px', backgroundColor: '#64748B' }}></div>
+                  <div style={{ position: 'absolute', top: '-4px', left: '50%', width: '2px', height: '10px', backgroundColor: '#64748B' }}></div>
+                  <div style={{ position: 'absolute', top: '-4px', left: '80%', width: '2px', height: '10px', backgroundColor: '#64748B' }}></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)' }}>
+                  <span>09:15 IST</span>
+                  <span>TYPICAL MARKET SESSION: NO SIGNIFICANT SHOCK DETECTED (DRIFT &lt; 2.0σ√t)</span>
+                  <span>15:30 IST</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Tab 1: Lag Distribution */}
           {activeTab === 'lag' && (
@@ -299,33 +330,37 @@ export default function App() {
             </div>
           )}
 
-          {/* Tab 4: Case Studies Inspector */}
+          {/* Tab 4: Case Studies Inspector / USGS Seismic Bulletin */}
           {activeTab === 'cases' && (
-            <div className="panel-box">
-              <div className="panel-header">Clean Non-Gap Reaction Headlines ({caseStudies.length})</div>
-              <div className="panel-desc">
-                Audited headlines during active market trading hours that triggered significant (&gt;2.0x baseline std) price moves.
+            <div className="panel-box" style={{ background: '#0B0F17', borderColor: '#1E2638' }}>
+              <div className="panel-header" style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                USGS-Style Seismological Event Bulletin ({caseStudies.length} Detected Shocks)
               </div>
-              <table className="data-table">
+              <div className="panel-desc" style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#64748B' }}>
+                AUDITED IN-SESSION TREMOR EVENTS EXCEEDING DYNAMIC 2.0σ√t DRIFT THRESHOLD. RECORDED AT STATIONS ^NSEI & ^BSESN.
+              </div>
+              <table className="data-table" style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
                 <thead>
-                  <tr>
-                    <th>Timestamp (UTC)</th>
-                    <th>Category</th>
-                    <th>Headline</th>
-                    <th>Source</th>
-                    <th>Lag</th>
-                    <th>Reaction Return</th>
+                  <tr style={{ borderBottom: '2px solid #1E2638' }}>
+                    <th>EVENT ID</th>
+                    <th>STATION</th>
+                    <th>TIMESTAMP (IST)</th>
+                    <th>TREMOR CLASS</th>
+                    <th>HEADLINE TEXT</th>
+                    <th>P-LAG</th>
+                    <th>MAGNITUDE (RETURN)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {caseStudies.map((c, idx) => (
-                    <tr key={idx}>
-                      <td>{c.published_at}</td>
-                      <td><span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>{c.category}</span></td>
-                      <td>{c.headline}</td>
-                      <td>{c.source}</td>
-                      <td><strong>{c.lag_minutes}m</strong></td>
-                      <td style={{ color: c.reaction_return_pct < 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
+                    <tr key={idx} style={{ borderBottom: '1px solid #121824' }}>
+                      <td style={{ color: '#38BDF8', fontWeight: 600 }}>{c.event_id}</td>
+                      <td style={{ color: '#94A3B8' }}>{c.ticker}</td>
+                      <td style={{ color: '#64748B' }}>{c.published_at}</td>
+                      <td><span style={{ color: '#38BDF8', fontWeight: 600 }}>{c.category}</span></td>
+                      <td style={{ color: '#CBD5E1', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.headline}</td>
+                      <td style={{ color: '#F43F5E', fontWeight: 600 }}>P-{c.lag_minutes}m</td>
+                      <td style={{ color: c.reaction_return_pct < 0 ? '#F43F5E' : '#34D399', fontWeight: 600 }}>
                         {c.reaction_return_pct >= 0 ? `+${c.reaction_return_pct}%` : `${c.reaction_return_pct}%`}
                       </td>
                     </tr>
