@@ -23,7 +23,7 @@
 | Log Date | Canonical Headlines | Total Price Bars | Clean Events (Train / Test) | Valid Pairs (NSEI / BSESN) | Model Test Accuracy | Naive Baseline (Flat) | **Net Excess Alpha Lift** | Top Predictive Feature | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **2026-08-23 (Day 1)** | 946 | 5,235 | 265 (212 / 53) | 527 (265 / 262) | **70.59%** | **82.35%** | **-11.76%** | `sentiment_ewm_60m` (24.1%) | 🟢 Epoch Baseline Established* |
-| **2026-08-24 (Day 2)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
+| **2026-08-24 (Day 2)** | 1,042 | 5,281 | 266 (212 / 54) | 553 (278 / 275) | **74.07%** | **81.48%** | **-7.41%** | `sentiment_ewm_60m` (24.1%) | 🟢 Live Monday Ingestion Active |
 | **2026-08-25 (Day 3)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-26 (Day 4)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
 | **2026-08-27 (Day 5)** | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | *Pending* | ⏳ Scheduled |
