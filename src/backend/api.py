@@ -21,6 +21,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/api/health")
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "timestamp": datetime.datetime.now(datetime.UTC).isoformat()}
+
 @app.get("/api/metadata")
 def get_metadata():
     session = get_session()
