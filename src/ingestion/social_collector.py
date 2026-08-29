@@ -9,31 +9,57 @@ from src.ingestion.news_collector import classify_event_type
 
 logger = setup_logging()
 
-# Tier-1 Institutional Financial Squawk & Breaking Intelligence Handles
+# Tier-1 Institutional Financial Squawk & Premium Macro/Equity Intelligence
 SOCIAL_SQUAWK_FEEDS = [
+    # --- Ultra-Fast Flash Squawks (Sub-second Macro & Earnings) ---
     {
         "source": "X/@DeItaone",
         "name": "Deltaone Squawk Wire",
-        "url": "https://rss.app/feeds/v1.1/tG265YqXw1.xml", # High-availability squawk mirror
-        "fallback_keywords": ["BREAKING", "EXCLUSIVE", "FED", "RATE", "WAR", "EARNINGS"]
+        "url": "https://rss.app/feeds/v1.1/tG265YqXw1.xml",
+        "category": "macro_squawk"
     },
     {
         "source": "X/@WalterBloomberg",
         "name": "Walter Bloomberg Terminal Wire",
         "url": "https://rss.app/feeds/v1.1/uH834ZpQw2.xml",
-        "fallback_keywords": ["*BBG", "SURGES", "SLUMPS", "CUTS", "HIKE", "BEATS"]
+        "category": "macro_squawk"
+    },
+    {
+        "source": "X/@KobeissiLetter",
+        "name": "The Kobeissi Letter (Global Macro & Fed)",
+        "url": "https://rss.app/feeds/v1.1/kL981XqZa5.xml",
+        "category": "macro_intelligence"
     },
     {
         "source": "X/@WatcherGuru",
         "name": "WatcherGuru Crypto/Macro",
         "url": "https://rss.app/feeds/v1.1/wK942LmZx3.xml",
-        "fallback_keywords": ["JUST IN", "SEC", "BITCOIN", "ETF", "APPROVES"]
+        "category": "crypto_macro"
     },
     {
         "source": "X/@FirstSquawk",
         "name": "First Squawk Live",
         "url": "https://rss.app/feeds/v1.1/fS120KjPl4.xml",
-        "fallback_keywords": ["OPEC", "CRUDE", "TREASURY", "YIELD", "STRIKE"]
+        "category": "energy_forex"
+    },
+    # --- Curated Indian Fundamental & Sector Analysis Feeds ---
+    {
+        "source": "YouTube/SOIC",
+        "name": "SOIC Finance (School of Intrinsic Compounding)",
+        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCWkYf99_9Lp29r6u5nOa_1A",
+        "category": "indian_deep_research"
+    },
+    {
+        "source": "X/@SajalKapoor",
+        "name": "Sajal Kapoor (Un-Structured / Micro-Cap Cycles)",
+        "url": "https://rss.app/feeds/v1.1/sK732VpLt6.xml",
+        "category": "indian_deep_research"
+    },
+    {
+        "source": "YouTube/YadnyaAdvisory",
+        "name": "Yadnya Investment Academy",
+        "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCtC1b0Fj_4fXFwX6j9_7_2Q",
+        "category": "indian_deep_research"
     }
 ]
 
