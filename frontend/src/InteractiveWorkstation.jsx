@@ -15,14 +15,15 @@ import {
   Building2,
   ExternalLink,
   ChevronRight,
-  Volume2,
-  VolumeX,
   BookOpen,
   Share2,
-  Search
+  Search,
+  Radar,
+  Layers,
+  Crosshair
 } from 'lucide-react';
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell
 } from 'recharts';
 
 const API_BASE = 'http://localhost:8000/api';
@@ -98,6 +99,7 @@ export default function InteractiveWorkstation() {
   const [screenerIntel, setScreenerIntel] = useState(null);
   const [researchPaper, setResearchPaper] = useState('');
   const [contagionData, setContagionData] = useState(null);
+  const [optionsData, setOptionsData] = useState(null);
 
   // Interactive Live Simulator State
   const [customHeadline, setCustomHeadline] = useState('');
@@ -150,6 +152,16 @@ export default function InteractiveWorkstation() {
     fetch(`${API_BASE}/research-paper`)
       .then(res => res.json())
       .then(data => setResearchPaper(data.markdown || ''))
+      .catch(err => console.error(err));
+
+    fetch(`${API_BASE}/options-radar?ticker=${encodeURIComponent(selectedAsset.ticker)}`)
+      .then(res => res.json())
+      .then(data => setOptionsData(data))
+      .catch(err => console.error(err));
+
+    fetch(`${API_BASE}/screener-intel?ticker=${encodeURIComponent(selectedAsset.ticker)}`)
+      .then(res => res.json())
+      .then(data => setScreenerIntel(data))
       .catch(err => console.error(err));
 
     fetch(`${API_BASE}/seismograph-trace?ticker=${encodeURIComponent(selectedAsset.ticker)}`)
@@ -427,28 +439,49 @@ export default function InteractiveWorkstation() {
                   ⚡ Price Shockwave
                 </button>
                 
-                {selectedAsset.isStock && (
-                  <button
-                    onClick={() => setActiveTab('screener')}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: '6px',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      backgroundColor: activeTab === 'screener' ? '#10b981' : '#131926',
-                      color: activeTab === 'screener' ? '#080a0f' : '#94a3b8',
-                      border: 'none'
-                    }}
-                  >
-                    <Building2 size={13} />
-                    <span>Screener.in Fundamentals</span>
-                  </button>
-                )}
+                {/* Tab 2: Screener.in Fundamentals & Concall Insights */}
+                <button
+                  onClick={() => setActiveTab('screener')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    backgroundColor: activeTab === 'screener' ? '#10b981' : '#131926',
+                    color: activeTab === 'screener' ? '#080a0f' : '#94a3b8',
+                    border: 'none'
+                  }}
+                >
+                  <Building2 size={13} />
+                  <span>Screener & Concalls</span>
+                </button>
 
+                {/* Tab 3: Options Max Pain & F&O Radar */}
+                <button
+                  onClick={() => setActiveTab('options')}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    backgroundColor: activeTab === 'options' ? '#f43f5e' : '#131926',
+                    color: activeTab === 'options' ? '#080a0f' : '#94a3b8',
+                    border: 'none'
+                  }}
+                >
+                  <Radar size={13} />
+                  <span>F&O Max Pain & OI Radar</span>
+                </button>
+
+                {/* Tab 4: Contagion Matrix */}
                 <button
                   onClick={() => setActiveTab('contagion')}
                   style={{
@@ -469,6 +502,7 @@ export default function InteractiveWorkstation() {
                   <span>Contagion Matrix</span>
                 </button>
 
+                {/* Tab 5: Research Paper */}
                 <button
                   onClick={() => setActiveTab('paper')}
                   style={{
@@ -541,9 +575,10 @@ export default function InteractiveWorkstation() {
               </div>
             )}
 
-            {/* View B: Screener.in Fundamental Ratios & Announcements */}
+            {/* View B: Screener.in Fundamentals & Management Guidance */}
             {activeTab === 'screener' && screenerIntel && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {/* Multiples Bar */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                   {Object.entries(screenerIntel.ratios || {}).slice(0, 8).map(([key, val], idx) => (
                     <div key={idx} style={{ backgroundColor: '#080a0f', padding: '8px 12px', borderRadius: '6px', border: '1px solid #1a2233' }}>
@@ -552,23 +587,83 @@ export default function InteractiveWorkstation() {
                     </div>
                   ))}
                 </div>
-                <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#00f2fe', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <FileText size={13} />
-                    <span>Recent Screener.in Corporate Disclosures & Filings</span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {(screenerIntel.announcements || []).slice(0, 4).map((ann, idx) => (
-                      <div key={idx} style={{ padding: '6px 10px', backgroundColor: '#080a0f', borderRadius: '4px', border: '1px solid #1a2233', fontSize: '10px', color: '#cbd5e1' }}>
-                        • {ann}
+
+                {/* Institutional Shareholding & Guidance Score */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '10px' }}>
+                  <div style={{ backgroundColor: '#080a0f', padding: '12px', borderRadius: '8px', border: '1px solid #1a2233' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#00f2fe', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <PieChart size={13} />
+                      <span>FII / DII Shareholding Split</span>
+                    </div>
+                    {screenerIntel.shareholding && Object.entries(screenerIntel.shareholding).map(([k, v], i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '3px 0', borderBottom: '1px solid #131926' }}>
+                        <span style={{ color: '#94a3b8' }}>{k.replace('_', ' ').toUpperCase()}</span>
+                        <strong style={{ color: '#f1f5f9' }}>{v}</strong>
                       </div>
                     ))}
+                  </div>
+
+                  <div style={{ backgroundColor: '#080a0f', padding: '12px', borderRadius: '8px', border: '1px solid #1a2233' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#10b981', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Sparkles size={13} />
+                      <span>Forward-Looking Earnings Call (Concall) Insights</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {(screenerIntel.concall_highlights || []).map((h, i) => (
+                        <div key={i} style={{ fontSize: '10.5px', color: '#cbd5e1', lineHeight: '1.4', backgroundColor: '#0d111a', padding: '6px 8px', borderRadius: '4px' }}>
+                          ⚡ {h}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* View C: Multi-Asset Contagion Matrix */}
+            {/* View C: F&O Max Pain, Open Interest (OI) & Block Imbalance */}
+            {activeTab === 'options' && optionsData && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                  <div style={{ backgroundColor: '#080a0f', padding: '10px', borderRadius: '6px', border: '1px solid #f43f5e40' }}>
+                    <div style={{ fontSize: '9px', color: '#64748b' }}>OPTIONS MAX PAIN</div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#f43f5e', marginTop: '2px' }}>₹{optionsData.max_pain_strike}</div>
+                  </div>
+                  <div style={{ backgroundColor: '#080a0f', padding: '10px', borderRadius: '6px', border: '1px solid #1a2233' }}>
+                    <div style={{ fontSize: '9px', color: '#64748b' }}>PUT-CALL RATIO (PCR)</div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#00f2fe', marginTop: '2px' }}>{optionsData.pcr_ratio}</div>
+                  </div>
+                  <div style={{ backgroundColor: '#080a0f', padding: '10px', borderRadius: '6px', border: '1px solid #1a2233' }}>
+                    <div style={{ fontSize: '9px', color: '#64748b' }}>MAJOR CALL RESISTANCE</div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#eab308', marginTop: '2px' }}>₹{optionsData.major_resistance_strike}</div>
+                  </div>
+                  <div style={{ backgroundColor: '#080a0f', padding: '10px', borderRadius: '6px', border: '1px solid #1a2233' }}>
+                    <div style={{ fontSize: '9px', color: '#64748b' }}>MAJOR PUT SUPPORT</div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#10b981', marginTop: '2px' }}>₹{optionsData.major_support_strike}</div>
+                  </div>
+                </div>
+
+                {/* Open Interest Bar Chart */}
+                <div style={{ backgroundColor: '#080a0f', padding: '12px', borderRadius: '8px', border: '1px solid #1a2233' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#f1f5f9', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Derivatives Strike Distribution (Call OI vs Put OI)</span>
+                    <span style={{ fontSize: '10px', color: '#10b981' }}>{optionsData.pcr_signal}</span>
+                  </div>
+                  <div style={{ width: '100%', height: 160 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={optionsData.oi_strikes}>
+                        <XAxis dataKey="strike" stroke="#334155" fontSize={9} tickLine={false} />
+                        <YAxis stroke="#334155" fontSize={9} tickLine={false} />
+                        <Tooltip contentStyle={{ backgroundColor: '#0d111a', border: '1px solid #25334d', borderRadius: '6px', fontSize: '11px' }} />
+                        <Bar dataKey="call_oi" name="Call OI (Resistance)" fill="#f43f5e" radius={[3, 3, 0, 0]} />
+                        <Bar dataKey="put_oi" name="Put OI (Support)" fill="#10b981" radius={[3, 3, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View D: Multi-Asset Contagion Matrix */}
             {activeTab === 'contagion' && contagionData && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ fontSize: '12px', fontWeight: 700, color: '#c084fc', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -590,7 +685,7 @@ export default function InteractiveWorkstation() {
               </div>
             )}
 
-            {/* View D: Research Paper Reader */}
+            {/* View E: Research Paper Reader */}
             {activeTab === 'paper' && (
               <div style={{ maxHeight: '300px', overflowY: 'auto', backgroundColor: '#080a0f', padding: '16px', borderRadius: '8px', border: '1px solid #f59e0b40', fontSize: '11px', lineHeight: '1.6', color: '#cbd5e1' }}>
                 <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)' }}>{researchPaper}</pre>

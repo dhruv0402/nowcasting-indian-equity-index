@@ -267,6 +267,16 @@ def get_case_studies():
     session.close()
     return records
 
+@app.get("/api/screener-intel")
+def get_screener_intel(ticker: str = Query("RELIANCE.NS")):
+    from src.features.institutional_intel import fetch_institutional_profile
+    return fetch_institutional_profile(ticker)
+
+@app.get("/api/options-radar")
+def get_options_radar(ticker: str = Query("^NSEI"), spot_price: float = Query(24500.0)):
+    from src.features.options_radar import calculate_derivatives_max_pain
+    return calculate_derivatives_max_pain(ticker, spot_price)
+
 @app.get("/api/seismograph-trace")
 def get_seismograph_trace(ticker: str = Query("^NSEI")):
     session = get_session()
