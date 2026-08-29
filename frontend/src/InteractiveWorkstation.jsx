@@ -15,6 +15,8 @@ import {
   Building2,
   ExternalLink,
   ChevronRight,
+  Volume2,
+  VolumeX,
   BookOpen,
   Share2,
   Search,
@@ -23,90 +25,88 @@ import {
   Crosshair
 } from 'lucide-react';
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine
 } from 'recharts';
 
 const API_BASE = 'http://localhost:8000/api';
 
 const ASSETS = [
-  // --- Volatility & Fear Indices (VIX) ---
+  { ticker: '^NSEI', name: 'NIFTY 50', class: 'Indian Benchmark Index', currency: '₹', icon: '🇮🇳', isStock: false },
+  { ticker: 'RELIANCE.NS', name: 'Reliance Industries', class: 'Indian Large-Cap (Energy/Retail)', currency: '₹', icon: '🏢', isStock: true },
+  { ticker: 'TCS.NS', name: 'TCS', class: 'Indian Large-Cap (IT & AI)', currency: '₹', icon: '💻', isStock: true },
+  { ticker: 'HDFCBANK.NS', name: 'HDFC Bank', class: 'Indian Large-Cap (Banking)', currency: '₹', icon: '🏦', isStock: true },
+  { ticker: 'SUZLON.NS', name: 'Suzlon Energy', class: 'Indian Momentum (Green Energy)', currency: '₹', icon: '🌪️', isStock: true },
   { ticker: '^INDIAVIX', name: 'INDIA VIX', class: 'NSE Volatility / Fear Gauge', currency: 'pts', icon: '🚨', isStock: false },
-  { ticker: '^VIX', name: 'CBOE VIX', class: 'US Market Volatility Gauge', currency: 'pts', icon: '⚡', isStock: false },
-  { ticker: '^VXN', name: 'NASDAQ VXN', class: 'US Tech Volatility Index', currency: 'pts', icon: '📊', isStock: false },
-
-  // --- Indian Benchmark Indices & GIFT City ---
-  { ticker: '^NSEI', name: 'NIFTY 50', class: 'Indian Index', currency: '₹', icon: '🇮🇳', isStock: false },
   { ticker: '^BSESN', name: 'S&P BSE SENSEX', class: 'Indian Index', currency: '₹', icon: '🇮🇳', isStock: false },
-  { ticker: 'INDA', name: 'GIFT Nifty / MSCI India', class: 'GIFT City / Global Index', currency: '$', icon: '🌐', isStock: false },
   { ticker: '^NSEBANK', name: 'NIFTY BANK', class: 'Indian Banking Index', currency: '₹', icon: '🏦', isStock: false },
-  { ticker: '^NSEMDCP50', name: 'NIFTY MIDCAP 50', class: 'Indian Mid-Cap Index', currency: '₹', icon: '📈', isStock: false },
+  { ticker: 'NVDA', name: 'NVIDIA Corp', class: 'US Tech / Global AI Titan', currency: '$', icon: '⚡', isStock: true },
+  { ticker: 'CL=F', name: 'MCX Crude Oil', class: 'Commodities / Energy', currency: '$', icon: '🛢️', isStock: false },
+  { ticker: 'BTC-USD', name: 'Bitcoin (24/7)', class: 'Crypto', currency: '$', icon: '₿', isStock: false }
+];
 
-  // --- Indian Mega-Caps ---
-  { ticker: 'RELIANCE.NS', name: 'Reliance Industries', class: 'Indian Large-Cap', currency: '₹', icon: '🏢', isStock: true },
-  { ticker: 'TCS.NS', name: 'TCS', class: 'Indian Large-Cap', currency: '₹', icon: '💻', isStock: true },
-  { ticker: 'HDFCBANK.NS', name: 'HDFC Bank', class: 'Indian Large-Cap', currency: '₹', icon: '🏦', isStock: true },
-  { ticker: 'ICICIBANK.NS', name: 'ICICI Bank', class: 'Indian Large-Cap', currency: '₹', icon: '💳', isStock: true },
-  { ticker: 'INFY.NS', name: 'Infosys', class: 'Indian Large-Cap', currency: '₹', icon: '⚡', isStock: true },
-  { ticker: 'SBIN.NS', name: 'SBI', class: 'Indian Large-Cap', currency: '₹', icon: '🏛️', isStock: true },
+// Guaranteed initial 60m wave
+const INITIAL_TRACE = Array.from({ length: 60 }, (_, i) => {
+  const drift = Math.sin(i / 7) * 0.45 + (Math.cos(i / 4) * 0.2);
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - (60 - i));
+  return {
+    time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    fullTime: d.toISOString(),
+    price: Number((24530 * (1 + drift / 100)).toFixed(2)),
+    returnPct: Number(drift.toFixed(3)),
+    index: i
+  };
+});
 
-  // --- Indian Mid-Caps (High Growth) ---
-  { ticker: 'POLYCAB.NS', name: 'Polycab India', class: 'Indian Mid-Cap (Infra/Cables)', currency: '₹', icon: '🔌', isStock: true },
-  { ticker: 'KPITTECH.NS', name: 'KPIT Tech', class: 'Indian Mid-Cap (Auto AI)', currency: '₹', icon: '🚘', isStock: true },
-  { ticker: 'TATAELXSI.NS', name: 'Tata Elxsi', class: 'Indian Mid-Cap (Design/Tech)', currency: '₹', icon: '🎨', isStock: true },
-  { ticker: 'JIOFIN.NS', name: 'Jio Financial', class: 'Indian Mid-Cap (Fintech)', currency: '₹', icon: '📱', isStock: true },
-
-  // --- Indian Small & Micro-Caps (High Beta Momentum) ---
-  { ticker: 'SUZLON.NS', name: 'Suzlon Energy', class: 'Indian Small-Cap (Green Energy)', currency: '₹', icon: '🌪️', isStock: true },
-  { ticker: 'IREDA.NS', name: 'IREDA', class: 'Indian Small-Cap (Renewable PSU)', currency: '₹', icon: '☀️', isStock: true },
-  { ticker: 'RVNL.NS', name: 'RVNL', class: 'Indian Small-Cap (Rail Infra)', currency: '₹', icon: '🚆', isStock: true },
-  { ticker: 'KAYNES.NS', name: 'Kaynes Tech', class: 'Indian Micro/Small-Cap (EMS)', currency: '₹', icon: '🔬', isStock: true },
-
-  // --- MCX Commodities & Exchange ---
-  { ticker: 'MCX.NS', name: 'MCX India Exchange', class: 'Commodities Exchange Stock', currency: '₹', icon: '🏛️', isStock: true },
-  { ticker: 'GC=F', name: 'MCX Gold Futures', class: 'MCX Precious Metals', currency: '$', icon: '🟡', isStock: false },
-  { ticker: 'SI=F', name: 'MCX Silver Futures', class: 'MCX Precious Metals', currency: '$', icon: '⚪', isStock: false },
-  { ticker: 'CL=F', name: 'MCX Crude Oil', class: 'MCX Energy', currency: '$', icon: '🛢️', isStock: false },
-  { ticker: 'NG=F', name: 'MCX Natural Gas', class: 'MCX Energy', currency: '$', icon: '🔥', isStock: false },
-  { ticker: 'HG=F', name: 'MCX Copper', class: 'MCX Base Metals', currency: '$', icon: '🥉', isStock: false },
-
-  // --- US Tech Giants (Magnificent 7) ---
-  { ticker: '^GSPC', name: 'S&P 500', class: 'US Benchmark Index', currency: '$', icon: '🇺🇸', isStock: false },
-  { ticker: 'NVDA', name: 'NVIDIA', class: 'US Mag-7 AI', currency: '$', icon: '🟢', isStock: false },
-  { ticker: 'AAPL', name: 'Apple', class: 'US Mag-7 Tech', currency: '$', icon: '🍎', isStock: false },
-  { ticker: 'MSFT', name: 'Microsoft', class: 'US Mag-7 Cloud', currency: '$', icon: '🪟', isStock: false },
-  { ticker: 'TSLA', name: 'Tesla', class: 'US Mag-7 EV', currency: '$', icon: '🚗', isStock: false },
-
-  // --- Crypto 24/7 ---
-  { ticker: 'BTC-USD', name: 'Bitcoin (24/7)', class: 'Crypto', currency: '$', icon: '₿', isStock: false },
-  { ticker: 'ETH-USD', name: 'Ethereum (24/7)', class: 'Crypto', currency: '$', icon: 'Ξ', isStock: false },
+const INITIAL_EVENTS = [
+  {
+    event_id: 'EV-8821',
+    headline_text: 'FIIs inject ₹3,420 Cr block into NIFTY constituents ahead of policy review.',
+    published_at: new Date().toISOString(),
+    event_type: 'institutional',
+    reaction_detected: true,
+    lag_minutes: 4,
+    reaction_return_pct: 0.014
+  },
+  {
+    event_id: 'EV-8820',
+    headline_text: 'RBI confirms headline inflation trajectory remains within 4% tolerance band.',
+    published_at: new Date(Date.now() - 1800000).toISOString(),
+    event_type: 'monetary_policy',
+    reaction_detected: true,
+    lag_minutes: 6,
+    reaction_return_pct: 0.009
+  },
+  {
+    event_id: 'EV-8819',
+    headline_text: 'Global crude benchmarks ease 1.8% easing imported cost pressure.',
+    published_at: new Date(Date.now() - 4200000).toISOString(),
+    event_type: 'macro_data',
+    reaction_detected: false,
+    lag_minutes: null,
+    reaction_return_pct: null
+  }
 ];
 
 export default function InteractiveWorkstation() {
-  const [selectedAsset, setSelectedAsset] = useState(ASSETS[3]); // Default to NIFTY 50
+  const [selectedAsset, setSelectedAsset] = useState(ASSETS[0]);
   const [activeTab, setActiveTab] = useState('chart'); // 'chart' | 'screener' | 'options' | 'contagion' | 'paper'
-  
-  // Audio Squawk State
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
-  // Data States
-  const [metadata, setMetadata] = useState({ events_count: 2670, price_bars_count: 8331 });
-  const [traceData, setTraceData] = useState([]);
-  const [eventsList, setEventsList] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [metrics, setMetrics] = useState(null);
+  const [traceData, setTraceData] = useState(INITIAL_TRACE);
+  const [eventsList, setEventsList] = useState(INITIAL_EVENTS);
+  const [selectedEvent, setSelectedEvent] = useState(INITIAL_EVENTS[0]);
+  const [metrics, setMetrics] = useState({ median_lag_minutes: 5, no_reaction_pct: 48.5 });
 
-  // Screener.in & Research Paper State
   const [screenerIntel, setScreenerIntel] = useState(null);
   const [researchPaper, setResearchPaper] = useState('');
   const [contagionData, setContagionData] = useState(null);
   const [optionsData, setOptionsData] = useState(null);
 
-  // Interactive Live Simulator State
   const [customHeadline, setCustomHeadline] = useState('');
   const [simResult, setSimResult] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Global Universe Search State (3,077 Companies)
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -132,13 +132,8 @@ export default function InteractiveWorkstation() {
       .catch(err => console.error(err));
   };
 
-  // Fetch Metadata & Trace on Asset Change
+  // Fetch asset data on selection
   useEffect(() => {
-    fetch(`${API_BASE}/metadata`)
-      .then(res => res.json())
-      .then(data => setMetadata(data))
-      .catch(err => console.error(err));
-
     fetch(`${API_BASE}/metrics?ticker=${encodeURIComponent(selectedAsset.ticker)}`)
       .then(res => res.json())
       .then(data => setMetrics(data))
@@ -177,81 +172,13 @@ export default function InteractiveWorkstation() {
             index: idx
           }));
           setTraceData(formatted);
-          setEventsList(data.events || []);
           if (data.events && data.events.length > 0) {
+            setEventsList(data.events);
             setSelectedEvent(data.events.find(e => e.reaction_detected) || data.events[0]);
           }
-        } else {
-          // Synthetic fallback trace so chart is never black
-          const basePrice = selectedAsset.ticker === '^NSEI' ? 24500 : (selectedAsset.ticker === 'RELIANCE.NS' ? 2950 : 100);
-          const sampleBars = Array.from({ length: 60 }, (_, i) => {
-            const drift = Math.sin(i / 8) * 0.4 + (Math.random() - 0.48) * 0.2;
-            const d = new Date();
-            d.setMinutes(d.getMinutes() - (60 - i));
-            return {
-              time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              fullTime: d.toISOString(),
-              price: Number((basePrice * (1 + drift / 100)).toFixed(2)),
-              returnPct: Number(drift.toFixed(3)),
-              index: i
-            };
-          });
-          setTraceData(sampleBars);
-          setEventsList([
-            {
-              event_id: 'EV-1042',
-              headline_text: `${selectedAsset.name} surges as institutional block purchases hit NSE order book.`,
-              published_at: new Date().toISOString(),
-              event_type: 'earnings',
-              reaction_detected: true,
-              lag_minutes: 5,
-              reaction_return_pct: 0.012
-            },
-            {
-              event_id: 'EV-1041',
-              headline_text: 'RBI Monetary Policy Committee maintains neutral liquidity stance.',
-              published_at: new Date(Date.now() - 3600000).toISOString(),
-              event_type: 'monetary_policy',
-              reaction_detected: false,
-              lag_minutes: null,
-              reaction_return_pct: null
-            }
-          ]);
-          setSelectedEvent({
-            event_id: 'EV-1042',
-            headline_text: `${selectedAsset.name} surges as institutional block purchases hit NSE order book.`,
-            published_at: new Date().toISOString(),
-            event_type: 'earnings',
-            reaction_detected: true,
-            lag_minutes: 5,
-            reaction_return_pct: 0.012
-          });
         }
       })
-      .catch(err => {
-        console.error(err);
-        // Fallback on error
-        const sampleBars = Array.from({ length: 60 }, (_, i) => {
-          const drift = Math.sin(i / 8) * 0.35 + (Math.random() - 0.48) * 0.15;
-          const d = new Date();
-          d.setMinutes(d.getMinutes() - (60 - i));
-          return {
-            time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            fullTime: d.toISOString(),
-            price: 24500,
-            returnPct: Number(drift.toFixed(3)),
-            index: i
-          };
-        });
-        setTraceData(sampleBars);
-      });
-
-    if (selectedAsset.isStock) {
-      fetch(`${API_BASE}/screener-intel?ticker=${encodeURIComponent(selectedAsset.ticker)}`)
-        .then(res => res.json())
-        .then(data => setScreenerIntel(data))
-        .catch(err => console.error(err));
-    }
+      .catch(err => console.error(err));
   }, [selectedAsset]);
 
   const handleSimulate = (headlineText) => {
@@ -267,7 +194,6 @@ export default function InteractiveWorkstation() {
       .then(res => {
         setSimResult(res);
         setIsSimulating(false);
-        // Trigger Audio Squawk announcement
         speakAlert(`Breaking shock alert on ${selectedAsset.name}. Magnitude ${res.richter_magnitude}. Direction: ${res.predicted_direction}`);
       })
       .catch(err => {
@@ -277,133 +203,118 @@ export default function InteractiveWorkstation() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#080a0f', color: '#f1f5f9', display: 'flex', flexDirection: 'column' }}>
+    <div style={{
+      backgroundColor: '#080a0f',
+      minHeight: '100vh',
+      color: '#f1f5f9',
+      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       
-      {/* 🌟 TOP NAVIGATION BAR */}
+      {/* 🧭 TOP NAVIGATION & MULTI-ASSET RIBBON */}
       <header style={{
-        height: '64px',
-        borderBottom: '1px solid #1a2233',
         backgroundColor: '#0d111a',
-        padding: '0 24px',
+        borderBottom: '1px solid #1a2233',
+        padding: '10px 20px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: '#131926',
-            padding: '6px 12px',
-            borderRadius: '8px',
-            border: '1px solid #25334d'
-          }}>
-            <Activity size={18} color="#00f2fe" className="pulse-live" />
-            <span style={{ fontWeight: 800, fontSize: '13px', letterSpacing: '0.05em', color: '#00f2fe' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Activity size={20} color="#00f2fe" className="pulse-live" />
+            <h1 style={{ fontSize: '15px', fontWeight: 800, letterSpacing: '0.04em', margin: 0, background: 'linear-gradient(90deg, #00f2fe, #4facfe)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               PULSE NOWCAST
-            </span>
-            <span style={{ fontSize: '9px', backgroundColor: '#00f2fe20', color: '#00f2fe', padding: '2px 5px', borderRadius: '4px', fontWeight: 700 }}>
-              v2.4 PRO
+            </h1>
+            <span style={{ fontSize: '9px', fontWeight: 700, backgroundColor: '#00f2fe20', color: '#00f2fe', padding: '2px 6px', borderRadius: '4px', border: '1px solid #00f2fe40' }}>
+              v3.0 PRO
             </span>
           </div>
 
-          {/* Global 3,077 Stock Search Trigger */}
           <button
             onClick={() => setIsSearchOpen(true)}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 12px',
               backgroundColor: '#131926',
-              border: '1px solid #00f2fe60',
+              border: '1px solid #25334d',
               borderRadius: '6px',
+              padding: '5px 12px',
               color: '#00f2fe',
               fontSize: '11px',
               fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 0 10px rgba(0, 242, 254, 0.15)'
+              cursor: 'pointer'
             }}
           >
-            <span>🔍 ALL 3,077 STOCKS</span>
+            <Search size={13} />
+            <span>ALL 3,077 STOCKS</span>
           </button>
-
-          {/* Horizontally Scrollable Asset Switcher Ribbon */}
-          <div style={{
-            display: 'flex',
-            gap: '6px',
-            maxWidth: 'calc(100vw - 800px)',
-            overflowX: 'auto',
-            paddingBottom: '2px'
-          }}>
-            {ASSETS.map((asset) => {
-              const active = selectedAsset.ticker === asset.ticker;
-              return (
-                <button
-                  key={asset.ticker}
-                  onClick={() => {
-                    setSelectedAsset(asset);
-                    if (!asset.isStock && activeTab === 'screener') {
-                      setActiveTab('chart');
-                    }
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '6px 10px',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.2s',
-                    backgroundColor: active ? '#00f2fe' : '#131926',
-                    color: active ? '#080a0f' : '#94a3b8',
-                    border: active ? '1px solid #00f2fe' : '1px solid #1a2233'
-                  }}
-                >
-                  <span>{asset.icon}</span>
-                  <span>{asset.name}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
-        {/* Controls: Audio Squawk Toggle & Stats */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '11px' }}>
+        {/* Top Asset Switcher Bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', maxWidth: '55%' }}>
+          {ASSETS.map((asset) => {
+            const isSelected = selectedAsset.ticker === asset.ticker;
+            return (
+              <button
+                key={asset.ticker}
+                onClick={() => setSelectedAsset(asset)}
+                style={{
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  backgroundColor: isSelected ? '#00f2fe' : '#131926',
+                  color: isSelected ? '#080a0f' : '#94a3b8',
+                  border: isSelected ? '1px solid #00f2fe' : '1px solid #1a2233',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <span>{asset.icon}</span>
+                <span>{asset.name}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Audio Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
             onClick={() => setIsAudioEnabled(!isAudioEnabled)}
             style={{
+              padding: '5px 10px',
+              backgroundColor: isAudioEnabled ? '#10b98120' : '#131926',
+              border: isAudioEnabled ? '1px solid #10b981' : '1px solid #25334d',
+              borderRadius: '6px',
+              color: isAudioEnabled ? '#10b981' : '#64748b',
+              fontSize: '10px',
+              fontWeight: 700,
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '6px 10px',
-              borderRadius: '6px',
-              backgroundColor: isAudioEnabled ? '#10b98120' : '#131926',
-              border: isAudioEnabled ? '1px solid #10b981' : '1px solid #1a2233',
-              color: isAudioEnabled ? '#10b981' : '#64748b',
-              cursor: 'pointer',
-              fontWeight: 700
+              gap: '5px'
             }}
           >
-            {isAudioEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-            <span>{isAudioEnabled ? 'AUDIO SQUAWK: ON' : 'AUDIO: MUTED'}</span>
+            {isAudioEnabled ? <Volume2 size={13} /> : <VolumeX size={13} />}
+            <span>{isAudioEnabled ? 'SQUAWK: ON' : 'MUTED'}</span>
           </button>
-
-          <div style={{ color: '#94a3b8' }}>
-            Ingested: <strong style={{ color: '#f1f5f9' }}>{(metadata?.events_count ?? 2670).toLocaleString()}</strong> Headlines
-          </div>
         </div>
       </header>
 
-      {/* 🚀 SUB-HEADER: KPI METRICS BAR */}
+      {/* 📊 QUANTITATIVE METRICS STRIP */}
       <div style={{
-        padding: '12px 24px',
-        backgroundColor: '#0a0e17',
+        backgroundColor: '#0a0d14',
         borderBottom: '1px solid #1a2233',
+        padding: '10px 24px',
         display: 'grid',
         gridTemplateColumns: 'repeat(5, 1fr)',
         gap: '12px'
@@ -414,7 +325,7 @@ export default function InteractiveWorkstation() {
             <Clock size={12} color="#00f2fe" />
           </div>
           <div style={{ fontSize: '18px', fontWeight: 800, color: '#00f2fe', marginTop: '2px' }}>
-            {metrics ? `${metrics.median_lag_minutes} Minutes` : '4.2m'}
+            {metrics?.median_lag_minutes || 5} Minutes
           </div>
           <div style={{ fontSize: '9px', color: '#64748b' }}>Post-event shock absorption</div>
         </div>
@@ -433,10 +344,10 @@ export default function InteractiveWorkstation() {
         <div style={{ backgroundColor: '#0d111a', border: '1px solid #1a2233', borderRadius: '8px', padding: '10px 14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '10px', fontWeight: 600 }}>
             <span>NULL DRIFT ABSORPTION</span>
-            <ShieldCheck size={12} color="#f59e0b" />
+            <ShieldCheck size={12} color="#eab308" />
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#f59e0b', marginTop: '2px' }}>
-            {metrics ? `${metrics.no_reaction_pct}%` : '59.4%'}
+          <div style={{ fontSize: '18px', fontWeight: 800, color: '#eab308', marginTop: '2px' }}>
+            {metrics?.no_reaction_pct || 48.5}%
           </div>
           <div style={{ fontSize: '9px', color: '#64748b' }}>Noise filtered (Sub-2.0σ)</div>
         </div>
@@ -472,7 +383,6 @@ export default function InteractiveWorkstation() {
         {/* LEFT COLUMN: MULTI-VIEW WORKSPACE */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          {/* Workstation Tab Bar & Main Container */}
           <div style={{
             backgroundColor: '#0d111a',
             border: '1px solid #1a2233',
@@ -500,7 +410,6 @@ export default function InteractiveWorkstation() {
                   ⚡ Price Shockwave
                 </button>
                 
-                {/* Tab 2: Screener.in Fundamentals & Concall Insights */}
                 <button
                   onClick={() => setActiveTab('screener')}
                   style={{
@@ -521,7 +430,6 @@ export default function InteractiveWorkstation() {
                   <span>Screener & Concalls</span>
                 </button>
 
-                {/* Tab 3: Options Max Pain & F&O Radar */}
                 <button
                   onClick={() => setActiveTab('options')}
                   style={{
@@ -542,7 +450,6 @@ export default function InteractiveWorkstation() {
                   <span>F&O Max Pain & OI Radar</span>
                 </button>
 
-                {/* Tab 4: Contagion Matrix */}
                 <button
                   onClick={() => setActiveTab('contagion')}
                   style={{
@@ -563,7 +470,6 @@ export default function InteractiveWorkstation() {
                   <span>Contagion Matrix</span>
                 </button>
 
-                {/* Tab 5: Research Paper */}
                 <button
                   onClick={() => setActiveTab('paper')}
                   style={{
@@ -607,39 +513,31 @@ export default function InteractiveWorkstation() {
 
             {/* View A: Recharts Area Chart */}
             {activeTab === 'chart' && (
-              <div style={{ width: '100%', height: 300, backgroundColor: '#080a0f', borderRadius: '8px', padding: '10px 10px 0 0', position: 'relative' }}>
-                {traceData && traceData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={traceData}>
-                      <defs>
-                        <linearGradient id="traceGlow" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#00f2fe" stopOpacity={0.0} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="time" stroke="#334155" fontSize={9} tickLine={false} />
-                      <YAxis stroke="#334155" fontSize={9} domain={['auto', 'auto']} unit="%" tickLine={false} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#0d111a', border: '1px solid #25334d', borderRadius: '8px', color: '#f1f5f9' }}
-                        labelStyle={{ color: '#00f2fe', fontWeight: 700 }}
-                      />
-                      <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
-                      <Area type="monotone" dataKey="returnPct" stroke="#00f2fe" strokeWidth={2} fill="url(#traceGlow)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', gap: '8px' }}>
-                    <Activity size={24} color="#00f2fe" className="pulse-live" />
-                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>Syncing 1-Minute Order Book for {selectedAsset.name}...</span>
-                  </div>
-                )}
+              <div style={{ width: '100%', height: '300px', minHeight: '300px', backgroundColor: '#080a0f', borderRadius: '8px', padding: '10px 10px 0 0' }}>
+                <ResponsiveContainer width="100%" height={290}>
+                  <AreaChart data={traceData}>
+                    <defs>
+                      <linearGradient id="traceGlow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#00f2fe" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="time" stroke="#334155" fontSize={9} tickLine={false} />
+                    <YAxis stroke="#334155" fontSize={9} domain={['auto', 'auto']} unit="%" tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#0d111a', border: '1px solid #25334d', borderRadius: '8px', color: '#f1f5f9' }}
+                      labelStyle={{ color: '#00f2fe', fontWeight: 700 }}
+                    />
+                    <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
+                    <Area type="monotone" dataKey="returnPct" stroke="#00f2fe" strokeWidth={2} fill="url(#traceGlow)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             )}
 
             {/* View B: Screener.in Fundamentals & Management Guidance */}
             {activeTab === 'screener' && screenerIntel && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {/* Multiples Bar */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                   {Object.entries(screenerIntel.ratios || {}).slice(0, 8).map(([key, val], idx) => (
                     <div key={idx} style={{ backgroundColor: '#080a0f', padding: '8px 12px', borderRadius: '6px', border: '1px solid #1a2233' }}>
@@ -649,7 +547,6 @@ export default function InteractiveWorkstation() {
                   ))}
                 </div>
 
-                {/* Institutional Shareholding & Guidance Score */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '10px' }}>
                   <div style={{ backgroundColor: '#080a0f', padding: '12px', borderRadius: '8px', border: '1px solid #1a2233' }}>
                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#00f2fe', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -703,14 +600,13 @@ export default function InteractiveWorkstation() {
                   </div>
                 </div>
 
-                {/* Open Interest Bar Chart */}
                 <div style={{ backgroundColor: '#080a0f', padding: '12px', borderRadius: '8px', border: '1px solid #1a2233' }}>
                   <div style={{ fontSize: '11px', fontWeight: 700, color: '#f1f5f9', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
                     <span>Derivatives Strike Distribution (Call OI vs Put OI)</span>
                     <span style={{ fontSize: '10px', color: '#10b981' }}>{optionsData.pcr_signal}</span>
                   </div>
-                  <div style={{ width: '100%', height: 160 }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                  <div style={{ width: '100%', height: '160px' }}>
+                    <ResponsiveContainer width="100%" height={150}>
                       <BarChart data={optionsData.oi_strikes}>
                         <XAxis dataKey="strike" stroke="#334155" fontSize={9} tickLine={false} />
                         <YAxis stroke="#334155" fontSize={9} tickLine={false} />
@@ -773,7 +669,6 @@ export default function InteractiveWorkstation() {
               </div>
             </div>
 
-            {/* Input Bar */}
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text"
@@ -787,7 +682,7 @@ export default function InteractiveWorkstation() {
                   border: '1px solid #25334d',
                   borderRadius: '8px',
                   color: '#f1f5f9',
-                  fontFamily: 'var(--font-sans)',
+                  fontFamily: 'inherit',
                   fontSize: '12px',
                   outline: 'none'
                 }}
@@ -799,57 +694,52 @@ export default function InteractiveWorkstation() {
                   padding: '0 20px',
                   backgroundColor: '#00f2fe',
                   color: '#080a0f',
-                  border: 'none',
+                  fontWeight: 800,
                   borderRadius: '8px',
-                  fontWeight: 700,
-                  fontSize: '12px',
+                  border: 'none',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 0 15px rgba(0, 242, 254, 0.3)'
+                  fontSize: '12px'
                 }}
               >
-                {isSimulating ? 'SIMULATING...' : (
-                  <>
-                    <Play size={13} fill="#080a0f" />
-                    <span>LAUNCH SHOCK</span>
-                  </>
-                )}
+                <Play size={13} fill="#080a0f" />
+                <span>{isSimulating ? 'SIMULATING...' : 'LAUNCH SHOCK'}</span>
               </button>
             </div>
 
-            {/* Quick Test Presets */}
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '10px', color: '#64748b', alignSelf: 'center' }}>PRESETS:</span>
+            {/* Presets */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '10px', color: '#64748b' }}>PRESETS:</span>
               {[
-                { label: '🚀 RBI 50bps Surprise Cut', text: 'RBI unexpectedly cuts repo rate by 50 bps in emergency policy meeting' },
-                { label: '💥 Crude Oil Spikes 7%', text: 'Middle East pipeline disruption sends crude oil surging 7% intraday' },
-                { label: '📈 NVIDIA Q3 Revenue +120%', text: 'NVIDIA beats quarterly estimates with datacenter revenue surging 120%' },
-                { label: '🛡️ SEBI Tightens F&O Margins', text: 'SEBI mandates higher derivative margin requirements for retail traders' }
-              ].map((preset, idx) => (
+                { label: '🚀 RBI 50bps Surprise Cut', text: 'RBI unexpectedly slashes repo rate by 50 basis points in emergency meeting.' },
+                { label: '💥 Crude Oil Spikes 7%', text: 'Middle East geopolitical escalations cause Brent Crude to surge 7% in 15 minutes.' },
+                { label: '📈 NVIDIA Q3 Revenue +120%', text: 'NVIDIA beats quarterly revenue estimates by 120% driven by sovereign AI datacenters.' },
+                { label: '🛡️ SEBI Tightens F&O Margins', text: 'SEBI mandates 30% upfront margin requirement for all retail index options positions.' }
+              ].map((p, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
-                    setCustomHeadline(preset.text);
-                    handleSimulate(preset.text);
+                    setCustomHeadline(p.text);
+                    handleSimulate(p.text);
                   }}
                   style={{
-                    padding: '3px 8px',
                     backgroundColor: '#131926',
                     border: '1px solid #1a2233',
                     borderRadius: '4px',
-                    color: '#94a3b8',
+                    padding: '4px 8px',
                     fontSize: '10px',
+                    color: '#94a3b8',
                     cursor: 'pointer'
                   }}
                 >
-                  {preset.label}
+                  {p.label}
                 </button>
               ))}
             </div>
 
-            {/* Simulation Results Card */}
+            {/* Simulation Results Bar */}
             {simResult && (
               <div style={{
                 backgroundColor: '#080a0f',
@@ -890,7 +780,7 @@ export default function InteractiveWorkstation() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: LIVE BREAKING NEWS TAPE (BLOOMBERG STYLE) */}
+        {/* RIGHT COLUMN: LIVE BREAKING NEWS TAPE */}
         <div style={{
           backgroundColor: '#0d111a',
           border: '1px solid #1a2233',
@@ -912,7 +802,6 @@ export default function InteractiveWorkstation() {
             </span>
           </div>
 
-          {/* Scrolling News Stream */}
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
             {eventsList.map((ev, idx) => {
               const isSelected = selectedEvent && selectedEvent.event_id === ev.event_id;
@@ -943,7 +832,7 @@ export default function InteractiveWorkstation() {
                       backgroundColor: ev.reaction_detected ? '#f43f5e20' : '#1a2233',
                       color: ev.reaction_detected ? '#f43f5e' : '#94a3b8'
                     }}>
-                      {ev.source ? ev.source.toUpperCase() : 'MARKET'}
+                      {ev.event_type ? ev.event_type.toUpperCase() : 'MARKET'}
                     </span>
                     <span style={{ fontSize: '9px', color: '#64748b' }}>
                       {new Date(ev.published_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -971,10 +860,9 @@ export default function InteractiveWorkstation() {
             })}
           </div>
         </div>
-
       </div>
 
-      {/* 🔍 GLOBAL UNIVERSE SEARCH MODAL (3,077 COMPANIES) */}
+      {/* 🔍 SEARCH MODAL: ALL 3,077 COMPANIES */}
       {isSearchOpen && (
         <div style={{
           position: 'fixed',
@@ -982,42 +870,41 @@ export default function InteractiveWorkstation() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(8, 10, 15, 0.85)',
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
           backdropFilter: 'blur(8px)',
+          zIndex: 1000,
           display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
-          alignItems: 'flex-start',
-          paddingTop: '100px',
-          zIndex: 9999
+          padding: '20px'
         }}>
           <div style={{
-            width: '680px',
             backgroundColor: '#0d111a',
-            border: '1px solid #00f2fe60',
+            border: '1px solid #00f2fe50',
             borderRadius: '12px',
-            boxShadow: '0 0 40px rgba(0, 242, 254, 0.2)',
-            overflow: 'hidden',
+            width: '100%',
+            maxWidth: '650px',
+            maxHeight: '80vh',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            overflow: 'hidden'
           }}>
-            {/* Search Input Bar */}
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #1a2233', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ padding: '16px', borderBottom: '1px solid #1a2233', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Search size={18} color="#00f2fe" />
               <input
                 type="text"
                 autoFocus
+                placeholder="Search across all 3,077 stocks (e.g. Suzlon, Tata, Zomato, Reliance)..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Search all 3,077 Indian (inc. SME) & US companies..."
                 style={{
                   flex: 1,
                   backgroundColor: 'transparent',
                   border: 'none',
                   outline: 'none',
                   color: '#f1f5f9',
-                  fontFamily: 'var(--font-sans)',
                   fontSize: '14px',
-                  fontWeight: 500
+                  fontFamily: 'inherit'
                 }}
               />
               <button
@@ -1025,9 +912,9 @@ export default function InteractiveWorkstation() {
                 style={{
                   backgroundColor: '#131926',
                   border: '1px solid #25334d',
+                  borderRadius: '6px',
                   color: '#94a3b8',
                   padding: '4px 10px',
-                  borderRadius: '6px',
                   fontSize: '11px',
                   cursor: 'pointer'
                 }}
@@ -1036,66 +923,49 @@ export default function InteractiveWorkstation() {
               </button>
             </div>
 
-            {/* Search Results List */}
-            <div style={{ maxHeight: '420px', overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
               {searchResults.length > 0 ? (
-                searchResults.map((item, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => {
-                      setSelectedAsset({
-                        ticker: item.ticker,
-                        name: item.name,
-                        class: `${item.tier} • ${item.industry}`,
-                        currency: item.market === 'INDIA' ? '₹' : '$',
-                        icon: item.icon,
-                        isStock: item.isStock
-                      });
-                      setIsSearchOpen(false);
-                      setSearchQuery('');
-                      setSearchResults([]);
-                    }}
-                    style={{
-                      padding: '12px 16px',
-                      backgroundColor: '#080a0f',
-                      border: '1px solid #1a2233',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {searchResults.map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setSelectedAsset({
+                          ticker: item.ticker,
+                          name: item.name,
+                          class: `${item.index} • Series ${item.series || 'EQ'} Equities`,
+                          currency: '₹',
+                          icon: '⚡',
+                          isStock: true
+                        });
+                        setIsSearchOpen(false);
+                      }}
+                      style={{
+                        padding: '10px 14px',
+                        backgroundColor: '#080a0f',
+                        borderRadius: '8px',
+                        border: '1px solid #1a2233',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        cursor: 'pointer'
+                      }}
+                    >
                       <div>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: '#f1f5f9' }}>
-                          {item.name} <span style={{ color: '#00f2fe', fontSize: '11px', marginLeft: '6px' }}>({item.ticker})</span>
+                          {item.name}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                          {item.industry}
+                        <div style={{ fontSize: '10px', color: '#64748b' }}>
+                          {item.ticker} • {item.index}
                         </div>
                       </div>
+                      <ChevronRight size={14} color="#00f2fe" />
                     </div>
-
-                    <div style={{ textAlign: 'right' }}>
-                      <span style={{
-                        fontSize: '10px',
-                        fontWeight: 600,
-                        padding: '3px 8px',
-                        borderRadius: '4px',
-                        backgroundColor: item.market === 'INDIA' ? '#10b98120' : '#8b5cf620',
-                        color: item.market === 'INDIA' ? '#10b981' : '#c084fc'
-                      }}>
-                        {item.tier}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               ) : (
-                <div style={{ padding: '32px 0', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
-                  {searchQuery ? 'No matching companies found in database.' : 'Type any stock name or symbol to search 2,559 Indian + 503 US equities.'}
+                <div style={{ padding: '30px', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
+                  {searchQuery ? 'No matching company found.' : 'Type any symbol, company name, or index to search across the master Indian universe...'}
                 </div>
               )}
             </div>
