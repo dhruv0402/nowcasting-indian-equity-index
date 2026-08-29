@@ -49,20 +49,25 @@ def get_metadata():
     }
 
 @app.get("/api/universe")
-def get_universe():
-    import yaml
-    with open("config.yaml", "r") as f:
-        config = yaml.safe_load(f)
+def get_universe(q: str = Query(None)):
+    import json
+    master_file = "data/universe_master.json"
+    if os.path.exists(master_file):
+        with open(master_file, "r") as f:
+            universe = json.load(f)
+    else:
+        from src.utils.universe_manager import build_and_save_master_universe
+        universe = build_and_save_master_universe()
         
-    return {
-        "tickers": config.get("tickers", ["^NSEI", "^BSESN"]),
-        "asset_classes": config.get("asset_classes", {
-            "indian_indices": {
-                "name": "Indian Benchmark Indices",
-                "tickers": ["^NSEI", "^BSESN"]
-            }
-        })
-    }
+    if q:
+        q_lower = q.lower().strip()
+        filtered = [
+            u for u in universe 
+            if q_lower in u["symbol"].lower() or q_lower in u["name"].lower() or q_lower in u["ticker"].lower()
+        ]
+        return {"total": len(filtered), "results": filtered[:50]}
+        
+    return {"total": len(universe), "universe": universe}
 
 @app.get("/api/screener-intel")
 def get_screener_intel(ticker: str = Query("RELIANCE.NS")):

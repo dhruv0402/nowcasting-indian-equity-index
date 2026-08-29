@@ -90,6 +90,23 @@ export default function InteractiveWorkstation() {
   const [simResult, setSimResult] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
 
+  // Global Universe Search State (1,270 Companies)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const handleSearch = (q) => {
+    setSearchQuery(q);
+    if (!q.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    fetch(`${API_BASE}/universe?q=${encodeURIComponent(q)}`)
+      .then(res => res.json())
+      .then(data => setSearchResults(data.results || []))
+      .catch(err => console.error(err));
+  };
+
   // Fetch Metadata & Trace on Asset Change
   useEffect(() => {
     fetch(`${API_BASE}/metadata`)
@@ -193,12 +210,33 @@ export default function InteractiveWorkstation() {
             </span>
           </div>
 
+          {/* Global 1,270 Stock Search Trigger */}
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 14px',
+              backgroundColor: '#131926',
+              border: '1px solid #00f2fe60',
+              borderRadius: '6px',
+              color: '#00f2fe',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 0 10px rgba(0, 242, 254, 0.15)'
+            }}
+          >
+            <span>🔍 ALL 1,270 STOCKS</span>
+          </button>
+
           {/* Horizontally Scrollable Asset Switcher Ribbon */}
           <div style={{
             display: 'flex',
             gap: '6px',
-            marginLeft: '12px',
-            maxWidth: 'calc(100vw - 600px)',
+            marginLeft: '8px',
+            maxWidth: 'calc(100vw - 750px)',
             overflowX: 'auto',
             paddingBottom: '2px'
           }}>
@@ -679,6 +717,135 @@ export default function InteractiveWorkstation() {
         </div>
 
       </div>
+
+      {/* 🔍 GLOBAL UNIVERSE SEARCH MODAL (1,270 COMPANIES) */}
+      {isSearchOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(8, 10, 15, 0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          paddingTop: '100px',
+          zIndex: 9999
+        }}>
+          <div style={{
+            width: '680px',
+            backgroundColor: '#0d111a',
+            border: '1px solid #00f2fe60',
+            borderRadius: '12px',
+            boxShadow: '0 0 40px rgba(0, 242, 254, 0.2)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Search Input Bar */}
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #1a2233', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Search size={18} color="#00f2fe" />
+              <input
+                type="text"
+                autoFocus
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search all 1,270 Indian & US companies (e.g. Zomato, Tata Motors, Apple, Suzlon, Gold)..."
+                style={{
+                  flex: 1,
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#f1f5f9',
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: '14px',
+                  fontWeight: 500
+                }}
+              />
+              <button
+                onClick={() => setIsSearchOpen(false)}
+                style={{
+                  backgroundColor: '#131926',
+                  border: '1px solid #25334d',
+                  color: '#94a3b8',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  cursor: 'pointer'
+                }}
+              >
+                ESC
+              </button>
+            </div>
+
+            {/* Search Results List */}
+            <div style={{ maxHeight: '420px', overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {searchResults.length > 0 ? (
+                searchResults.map((item, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      setSelectedAsset({
+                        ticker: item.ticker,
+                        name: item.name,
+                        class: `${item.tier} • ${item.industry}`,
+                        currency: item.market === 'INDIA' ? '₹' : '$',
+                        icon: item.icon,
+                        isStock: item.isStock
+                      });
+                      setIsSearchOpen(false);
+                      setSearchQuery('');
+                      setSearchResults([]);
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      backgroundColor: '#080a0f',
+                      border: '1px solid #1a2233',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#f1f5f9' }}>
+                          {item.name} <span style={{ color: '#00f2fe', fontSize: '11px', marginLeft: '6px' }}>({item.ticker})</span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                          {item.industry}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: item.market === 'INDIA' ? '#10b98120' : '#8b5cf620',
+                        color: item.market === 'INDIA' ? '#10b981' : '#c084fc'
+                      }}>
+                        {item.tier}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: '32px 0', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
+                  {searchQuery ? 'No matching companies found in database.' : 'Type any stock name or symbol to search 752 Indian + 503 US equities.'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
