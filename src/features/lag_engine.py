@@ -171,6 +171,13 @@ def run_lag_engine(config_path="config.yaml", db_path="data/db.sqlite"):
         existing_map = {(l.event_id, l.ticker): l for l in existing_lags}
         
         for event in news_events:
+            existing = existing_map.get((event.event_id, ticker))
+            if existing and not existing.has_data_gap:
+                total_measured += 1
+                if existing.reaction_detected:
+                    detected_count += 1
+                continue
+                
             result = measure_event_lag(
                 event_published_at=event.published_at,
                 price_df=price_df,
@@ -179,7 +186,6 @@ def run_lag_engine(config_path="config.yaml", db_path="data/db.sqlite"):
                 std_threshold=std_thresh
             )
             
-            existing = existing_map.get((event.event_id, ticker))
             if not existing:
                 lag_obj = LagMeasurement(
                     event_id=event.event_id,

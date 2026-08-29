@@ -1,5 +1,6 @@
 import datetime
 import pandas as pd
+import numpy as np
 
 def compute_news_velocity(current_time: datetime.datetime, events_df: pd.DataFrame) -> dict:
     """
@@ -12,9 +13,22 @@ def compute_news_velocity(current_time: datetime.datetime, events_df: pd.DataFra
     t_30 = current_time - datetime.timedelta(minutes=30)
     t_60 = current_time - datetime.timedelta(minutes=60)
     
+    # Fast path if sorted array is available
+    if "_sorted_timestamps" in events_df.attrs:
+        ts_arr = events_df.attrs["_sorted_timestamps"]
+        curr_ts = current_time.timestamp()
+        idx_curr = np.searchsorted(ts_arr, curr_ts, side="right")
+        idx_15 = np.searchsorted(ts_arr, t_15.timestamp(), side="left")
+        idx_30 = np.searchsorted(ts_arr, t_30.timestamp(), side="left")
+        idx_60 = np.searchsorted(ts_arr, t_60.timestamp(), side="left")
+        return {
+            "velocity_15m": max(0, idx_curr - idx_15),
+            "velocity_30m": max(0, idx_curr - idx_30),
+            "velocity_60m": max(0, idx_curr - idx_60)
+        }
+    
     # Filter strictly prior to current_time (Look-Ahead Guard compliance)
     prior_events = events_df[events_df["published_at"] <= current_time]
-    
     v15 = len(prior_events[prior_events["published_at"] >= t_15])
     v30 = len(prior_events[prior_events["published_at"] >= t_30])
     v60 = len(prior_events[prior_events["published_at"] >= t_60])

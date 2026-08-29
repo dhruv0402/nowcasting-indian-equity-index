@@ -197,12 +197,13 @@ def run_news_ingestion(config_path="config.yaml", use_synthetic=False, db_path="
     
     inserted_count = 0
     has_synthetic = any(item.get("is_synthetic", False) for item in news_items)
+    existing_ids = {e[0] for e in session.query(NewsEvent.event_id).all()}
     
     for item in news_items:
-        existing = session.query(NewsEvent).filter_by(event_id=item["event_id"]).first()
-        if not existing:
+        if item["event_id"] not in existing_ids:
             event = NewsEvent(**item)
             session.add(event)
+            existing_ids.add(item["event_id"])
             inserted_count += 1
             
     # Save metadata flag
