@@ -82,8 +82,8 @@ const ASSETS = [
 ];
 
 export default function InteractiveWorkstation() {
-  const [selectedAsset, setSelectedAsset] = useState(ASSETS[0]);
-  const [activeTab, setActiveTab] = useState('chart'); // 'chart' | 'screener' | 'contagion' | 'paper'
+  const [selectedAsset, setSelectedAsset] = useState(ASSETS[3]); // Default to NIFTY 50
+  const [activeTab, setActiveTab] = useState('chart'); // 'chart' | 'screener' | 'options' | 'contagion' | 'paper'
   
   // Audio Squawk State
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
