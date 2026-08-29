@@ -73,6 +73,14 @@ def run_collection_cycle(config_path="config.yaml", db_path="data/db.sqlite", fo
             news_count += social_count
         except Exception as se:
             logger.warning(f"Social squawk ingestion skipped: {se}")
+
+        # 1c. Ingest Direct NSE & BSE Official Regulatory Filings
+        try:
+            from src.ingestion.exchange_collector import run_exchange_filings_ingestion
+            exchange_count = run_exchange_filings_ingestion(db_path=db_path)
+            news_count += exchange_count
+        except Exception as ee:
+            logger.warning(f"Exchange filings ingestion skipped: {ee}")
         
         # 2. Collect price bars for active market tickers
         price_count = 0
