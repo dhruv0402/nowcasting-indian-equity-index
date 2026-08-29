@@ -210,7 +210,7 @@ export default function InteractiveWorkstation() {
             </span>
           </div>
 
-          {/* Global 1,270 Stock Search Trigger */}
+          {/* Global 3,077 Stock Search Trigger (Including SME) */}
           <button
             onClick={() => setIsSearchOpen(true)}
             style={{
@@ -228,7 +228,7 @@ export default function InteractiveWorkstation() {
               boxShadow: '0 0 10px rgba(0, 242, 254, 0.15)'
             }}
           >
-            <span>🔍 ALL 1,270 STOCKS</span>
+            <span>🔍 ALL 3,077 STOCKS (INC. SME)</span>
           </button>
 
           {/* Horizontally Scrollable Asset Switcher Ribbon */}
