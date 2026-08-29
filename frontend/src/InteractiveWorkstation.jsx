@@ -23,14 +23,36 @@ import {
 const API_BASE = 'http://localhost:8000/api';
 
 const ASSETS = [
+  // --- Indian Indices & GIFT City ---
   { ticker: '^NSEI', name: 'NIFTY 50', class: 'Indian Index', currency: '₹', icon: '🇮🇳', isStock: false },
   { ticker: '^BSESN', name: 'S&P BSE SENSEX', class: 'Indian Index', currency: '₹', icon: '🇮🇳', isStock: false },
-  { ticker: 'RELIANCE.NS', name: 'Reliance Industries', class: 'Indian Equity', currency: '₹', icon: '🏢', isStock: true },
-  { ticker: 'HDFCBANK.NS', name: 'HDFC Bank', class: 'Indian Banking', currency: '₹', icon: '🏦', isStock: true },
-  { ticker: '^GSPC', name: 'S&P 500', class: 'US Benchmark', currency: '$', icon: '🇺🇸', isStock: false },
-  { ticker: 'NVDA', name: 'NVIDIA Corp', class: 'US Tech / AI', currency: '$', icon: '⚡', isStock: false },
+  { ticker: 'INDA', name: 'GIFT Nifty / MSCI India', class: 'GIFT City / Global Index', currency: '$', icon: '🌐', isStock: false },
+  { ticker: '^NSEBANK', name: 'NIFTY BANK', class: 'Indian Banking Index', currency: '₹', icon: '🏦', isStock: false },
+
+  // --- Indian Mega-Cap Equities ---
+  { ticker: 'RELIANCE.NS', name: 'Reliance Industries', class: 'Indian Energy & Retail', currency: '₹', icon: '🏢', isStock: true },
+  { ticker: 'TCS.NS', name: 'Tata Consultancy Services', class: 'Indian IT Major', currency: '₹', icon: '💻', isStock: true },
+  { ticker: 'HDFCBANK.NS', name: 'HDFC Bank', class: 'Indian Private Banking', currency: '₹', icon: '🏦', isStock: true },
+  { ticker: 'ICICIBANK.NS', name: 'ICICI Bank', class: 'Indian Banking Major', currency: '₹', icon: '💳', isStock: true },
+  { ticker: 'INFY.NS', name: 'Infosys Limited', class: 'Indian Tech / Cloud', currency: '₹', icon: '⚡', isStock: true },
+  { ticker: 'SBIN.NS', name: 'State Bank of India', class: 'Indian PSU Banking', currency: '₹', icon: '🏛️', isStock: true },
+  { ticker: 'ITC.NS', name: 'ITC Limited', class: 'Indian FMCG Major', currency: '₹', icon: '📦', isStock: true },
+
+  // --- US Benchmarks & Magnificent 7 Tech ---
+  { ticker: '^GSPC', name: 'S&P 500', class: 'US Benchmark Index', currency: '$', icon: '🇺🇸', isStock: false },
+  { ticker: 'NVDA', name: 'NVIDIA Corp', class: 'US AI & Datacenter', currency: '$', icon: '🟢', isStock: false },
+  { ticker: 'AAPL', name: 'Apple Inc', class: 'US Consumer Tech', currency: '$', icon: '🍎', isStock: false },
+  { ticker: 'MSFT', name: 'Microsoft', class: 'US Cloud & AI', currency: '$', icon: '🪟', isStock: false },
+  { ticker: 'GOOGL', name: 'Google / Alphabet', class: 'US Search & AI', currency: '$', icon: '🔍', isStock: false },
+  { ticker: 'AMZN', name: 'Amazon.com', class: 'US E-Commerce & AWS', currency: '$', icon: '📦', isStock: false },
+  { ticker: 'META', name: 'Meta Platforms', class: 'US Social Tech & VR', currency: '$', icon: '👥', isStock: false },
+  { ticker: 'TSLA', name: 'Tesla Inc', class: 'US EV & Robotics', currency: '$', icon: '🚗', isStock: false },
+
+  // --- Commodities & Crypto ---
   { ticker: 'BTC-USD', name: 'Bitcoin (24/7)', class: 'Crypto', currency: '$', icon: '₿', isStock: false },
+  { ticker: 'ETH-USD', name: 'Ethereum (24/7)', class: 'Crypto', currency: '$', icon: 'Ξ', isStock: false },
   { ticker: 'GC=F', name: 'Gold Futures', class: 'Commodities', currency: '$', icon: '🟡', isStock: false },
+  { ticker: 'CL=F', name: 'Crude Oil (WTI)', class: 'Energy', currency: '$', icon: '🛢️', isStock: false },
 ];
 
 export default function InteractiveWorkstation() {
@@ -156,8 +178,15 @@ export default function InteractiveWorkstation() {
             </span>
           </div>
 
-          {/* Asset Switcher Ribbon */}
-          <div style={{ display: 'flex', gap: '6px', marginLeft: '12px' }}>
+          {/* Horizontally Scrollable Asset Switcher Ribbon */}
+          <div style={{
+            display: 'flex',
+            gap: '6px',
+            marginLeft: '12px',
+            maxWidth: 'calc(100vw - 600px)',
+            overflowX: 'auto',
+            paddingBottom: '2px'
+          }}>
             {ASSETS.map((asset) => {
               const active = selectedAsset.ticker === asset.ticker;
               return (
@@ -175,9 +204,10 @@ export default function InteractiveWorkstation() {
                     gap: '6px',
                     padding: '6px 12px',
                     borderRadius: '6px',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: 600,
                     cursor: 'pointer',
+                    whiteSpace: 'nowrap',
                     transition: 'all 0.2s',
                     backgroundColor: active ? '#00f2fe' : '#131926',
                     color: active ? '#080a0f' : '#94a3b8',

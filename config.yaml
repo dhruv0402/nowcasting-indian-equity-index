@@ -1,43 +1,68 @@
-# Multi-Asset Universe Configuration
+# Universal Institutional Multi-Asset Universe Configuration
 tickers:
-  - "^NSEI"        # NIFTY 50
-  - "^BSESN"       # S&P BSE SENSEX
-  - "RELIANCE.NS"  # Reliance Industries (Indian Equities)
-  - "HDFCBANK.NS"  # HDFC Bank (Indian Banking)
-  - "^GSPC"        # S&P 500 (US Benchmark)
-  - "NVDA"         # NVIDIA (US AI/Tech)
-  - "AAPL"         # Apple (US Tech)
-  - "BTC-USD"      # Bitcoin (Crypto 24/7)
-  - "ETH-USD"      # Ethereum (Crypto 24/7)
-  - "GC=F"         # Gold Futures (Commodities)
-  - "CL=F"         # WTI Crude Oil (Commodities)
-  - "USDINR=X"     # USD/INR (Forex)
+  # --- Indian Benchmark Indices & GIFT City ---
+  - "^NSEI"          # NIFTY 50 (National Stock Exchange)
+  - "^BSESN"         # S&P BSE SENSEX 30
+  - "^NSEBANK"       # NIFTY BANK Index
+  - "^CNXIT"         # NIFTY IT Index
+  - "INDA"           # iShares MSCI India ETF (GIFT / Global India Proxy)
+
+  # --- Indian Mega-Caps & F&O Leaders ---
+  - "RELIANCE.NS"    # Reliance Industries (Energy & Retail)
+  - "TCS.NS"         # Tata Consultancy Services (IT)
+  - "HDFCBANK.NS"    # HDFC Bank (Private Banking)
+  - "ICICIBANK.NS"   # ICICI Bank (Banking)
+  - "INFY.NS"        # Infosys (IT)
+  - "TATAMOTORS.NS"  # Tata Motors (Auto / EV)
+  - "SBIN.NS"        # State Bank of India (PSU Banking)
+  - "BHARTIARTL.NS"  # Bharti Airtel (Telecom)
+  - "LICI.NS"        # Life Insurance Corp of India
+  - "ITC.NS"         # ITC Ltd (FMCG)
+
+  # --- US Benchmark Indices & Tech Giants (Magnificent 7) ---
+  - "^GSPC"          # S&P 500 Benchmark Index
+  - "^IXIC"          # NASDAQ Composite
+  - "^DJI"           # Dow Jones Industrial Average
+  - "NVDA"           # NVIDIA Corporation (AI Computing)
+  - "AAPL"           # Apple Inc (Consumer Tech)
+  - "MSFT"           # Microsoft Corporation (Cloud & Enterprise)
+  - "GOOGL"          # Alphabet / Google (Search & AI)
+  - "AMZN"           # Amazon.com (E-Commerce & AWS)
+  - "META"           # Meta Platforms (Social Tech)
+  - "TSLA"           # Tesla (Automotive & Clean Energy)
+
+  # --- Global Commodities & Interbank Forex ---
+  - "GC=F"           # Gold Futures
+  - "CL=F"           # WTI Crude Oil
+  - "USDINR=X"       # USD / INR Spot Rate
+  - "EURUSD=X"       # EUR / USD Spot Rate
+
+  # --- Digital Assets & Crypto (24/7) ---
+  - "BTC-USD"        # Bitcoin
+  - "ETH-USD"        # Ethereum
+  - "SOL-USD"        # Solana
 
 asset_classes:
-  indian_indices:
-    name: "Indian Benchmark Indices"
-    tickers: ["^NSEI", "^BSESN"]
-    market_hours: "NSE"  # 09:15 - 15:30 IST
-  indian_equities:
-    name: "Indian Blue-Chip Equities"
-    tickers: ["RELIANCE.NS", "HDFCBANK.NS"]
+  gift_and_indian_indices:
+    name: "GIFT Nifty & Indian Benchmark Indices"
+    tickers: ["^NSEI", "^BSESN", "^NSEBANK", "^CNXIT", "INDA"]
     market_hours: "NSE"
-  us_equities:
-    name: "US Equities & Tech"
-    tickers: ["^GSPC", "NVDA", "AAPL"]
-    market_hours: "US"   # 09:30 - 16:00 EST
+  indian_equities:
+    name: "Indian Mega-Cap Blue-Chips"
+    tickers: ["RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", "TATAMOTORS.NS", "SBIN.NS", "BHARTIARTL.NS", "LICI.NS", "ITC.NS"]
+    market_hours: "NSE"
+  us_indices_and_tech:
+    name: "US Benchmarks & Magnificent-7 Tech"
+    tickers: ["^GSPC", "^IXIC", "^DJI", "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA"]
+    market_hours: "US"
+  commodities_and_forex:
+    name: "Global Commodities & Forex"
+    tickers: ["GC=F", "CL=F", "USDINR=X", "EURUSD=X"]
+    market_hours: "GLOBAL"
   crypto:
-    name: "Digital Assets / Crypto"
-    tickers: ["BTC-USD", "ETH-USD"]
+    name: "24/7 Digital Assets & Crypto"
+    tickers: ["BTC-USD", "ETH-USD", "SOL-USD"]
     market_hours: "24/7"
-  commodities:
-    name: "Global Commodities"
-    tickers: ["GC=F", "CL=F"]
-    market_hours: "GLOBAL"
-  forex:
-    name: "Foreign Exchange"
-    tickers: ["USDINR=X"]
-    market_hours: "GLOBAL"
 
 data_collection:
   mode: "rolling"
@@ -46,40 +71,29 @@ data_collection:
     # --- Indian Financial & Macro Feeds ---
     - name: "Economic Times Markets"
       url: "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"
-      category: "indian_equities"
     - name: "Economic Times Stocks"
       url: "https://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms"
-      category: "indian_equities"
     - name: "Economic Times Economy"
       url: "https://economictimes.indiatimes.com/news/economy/rssfeeds/1373380680.cms"
-      category: "macro_data"
     - name: "Livemint Markets"
       url: "https://www.livemint.com/rss/markets"
-      category: "indian_equities"
     - name: "Moneycontrol Top News"
       url: "https://www.moneycontrol.com/rss/MCtopnews.xml"
-      category: "indian_equities"
     - name: "Google News Nifty Sensex"
       url: "https://news.google.com/rss/search?q=nifty+sensex+stock+market+india&hl=en-IN&gl=IN&ceid=IN:en"
-      category: "indian_equities"
     # --- US & Global Tech / Macro Feeds ---
     - name: "CNBC Top Markets"
       url: "https://search.cnbc.com/rs/search/view.html?partnerId=2000&keywords=markets&sort=date"
-      category: "us_equities"
     - name: "Google News US Markets"
       url: "https://news.google.com/rss/search?q=wall+street+fed+nvidia+apple+sp500&hl=en-US&gl=US&ceid=US:en"
-      category: "us_equities"
     # --- Crypto & Digital Assets Feeds ---
     - name: "CoinDesk Latest"
       url: "https://www.coindesk.com/arc/outboundfeeds/rss/"
-      category: "crypto"
     - name: "CoinTelegraph News"
       url: "https://cointelegraph.com/rss"
-      category: "crypto"
     # --- Commodities & Energy Feeds ---
     - name: "OilPrice Energy News"
       url: "https://oilprice.com/rss/main"
-      category: "commodities"
 
 lag_detection:
   baseline_window_min: 15
@@ -99,5 +113,3 @@ model:
 paths:
   db_path: "data/db.sqlite"
   raw_dir: "data/raw"
-  processed_dir: "data/processed"
-  reports_dir: "reports"
