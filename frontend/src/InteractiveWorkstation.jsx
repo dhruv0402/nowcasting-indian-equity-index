@@ -28,7 +28,12 @@ import {
 const API_BASE = 'http://localhost:8000/api';
 
 const ASSETS = [
-  // --- Indian Indices & GIFT City ---
+  // --- Volatility & Fear Indices (VIX) ---
+  { ticker: '^INDIAVIX', name: 'INDIA VIX', class: 'NSE Volatility / Fear Gauge', currency: 'pts', icon: '🚨', isStock: false },
+  { ticker: '^VIX', name: 'CBOE VIX', class: 'US Market Volatility Gauge', currency: 'pts', icon: '⚡', isStock: false },
+  { ticker: '^VXN', name: 'NASDAQ VXN', class: 'US Tech Volatility Index', currency: 'pts', icon: '📊', isStock: false },
+
+  // --- Indian Benchmark Indices & GIFT City ---
   { ticker: '^NSEI', name: 'NIFTY 50', class: 'Indian Index', currency: '₹', icon: '🇮🇳', isStock: false },
   { ticker: '^BSESN', name: 'S&P BSE SENSEX', class: 'Indian Index', currency: '₹', icon: '🇮🇳', isStock: false },
   { ticker: 'INDA', name: 'GIFT Nifty / MSCI India', class: 'GIFT City / Global Index', currency: '$', icon: '🌐', isStock: false },
