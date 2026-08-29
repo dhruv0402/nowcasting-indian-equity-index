@@ -59,6 +59,12 @@ def get_universe():
         })
     }
 
+@app.get("/api/screener-intel")
+def get_screener_intel(ticker: str = Query("RELIANCE.NS")):
+    from src.ingestion.screener_collector import scrape_screener_company_intel
+    data = scrape_screener_company_intel(ticker)
+    return data
+
 @app.get("/api/metrics")
 def get_metrics(
     ticker: str = Query("^NSEI"),

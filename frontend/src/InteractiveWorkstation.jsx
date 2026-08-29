@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Activity,
   Zap,
@@ -6,39 +6,36 @@ import {
   TrendingDown,
   Clock,
   Radio,
-  Sliders,
   Play,
-  Maximize2,
-  ChevronRight,
   Sparkles,
-  BarChart3,
   ShieldCheck,
-  Search,
-  Globe,
   Flame,
-  Layers,
-  ArrowUpRight,
-  ArrowDownRight
+  FileText,
+  PieChart,
+  Building2,
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
 import {
-  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceDot
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine
 } from 'recharts';
 
 const API_BASE = 'http://localhost:8000/api';
 
 const ASSETS = [
-  { ticker: '^NSEI', name: 'NIFTY 50', class: 'Indian Index', currency: '₹', icon: '🇮🇳' },
-  { ticker: '^BSESN', name: 'S&P BSE SENSEX', class: 'Indian Index', currency: '₹', icon: '🇮🇳' },
-  { ticker: 'RELIANCE.NS', name: 'Reliance Industries', class: 'Indian Equity', currency: '₹', icon: '🏢' },
-  { ticker: '^GSPC', name: 'S&P 500', class: 'US Benchmark', currency: '$', icon: '🇺🇸' },
-  { ticker: 'NVDA', name: 'NVIDIA Corp', class: 'US Tech / AI', currency: '$', icon: '⚡' },
-  { ticker: 'BTC-USD', name: 'Bitcoin (24/7)', class: 'Crypto', currency: '$', icon: '₿' },
-  { ticker: 'GC=F', name: 'Gold Futures', class: 'Commodities', currency: '$', icon: '🟡' },
+  { ticker: '^NSEI', name: 'NIFTY 50', class: 'Indian Index', currency: '₹', icon: '🇮🇳', isStock: false },
+  { ticker: '^BSESN', name: 'S&P BSE SENSEX', class: 'Indian Index', currency: '₹', icon: '🇮🇳', isStock: false },
+  { ticker: 'RELIANCE.NS', name: 'Reliance Industries', class: 'Indian Equity', currency: '₹', icon: '🏢', isStock: true },
+  { ticker: 'HDFCBANK.NS', name: 'HDFC Bank', class: 'Indian Banking', currency: '₹', icon: '🏦', isStock: true },
+  { ticker: '^GSPC', name: 'S&P 500', class: 'US Benchmark', currency: '$', icon: '🇺🇸', isStock: false },
+  { ticker: 'NVDA', name: 'NVIDIA Corp', class: 'US Tech / AI', currency: '$', icon: '⚡', isStock: false },
+  { ticker: 'BTC-USD', name: 'Bitcoin (24/7)', class: 'Crypto', currency: '$', icon: '₿', isStock: false },
+  { ticker: 'GC=F', name: 'Gold Futures', class: 'Commodities', currency: '$', icon: '🟡', isStock: false },
 ];
 
 export default function InteractiveWorkstation() {
   const [selectedAsset, setSelectedAsset] = useState(ASSETS[0]);
-  const [activeView, setActiveView] = useState('terminal'); // 'terminal' | 'simulator' | 'bulletin'
+  const [activeTab, setActiveTab] = useState('chart'); // 'chart' | 'screener'
   
   // Data States
   const [metadata, setMetadata] = useState({ events_count: 2670, price_bars_count: 8331 });
@@ -47,11 +44,14 @@ export default function InteractiveWorkstation() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [metrics, setMetrics] = useState(null);
 
+  // Screener.in Fundamental State
+  const [screenerIntel, setScreenerIntel] = useState(null);
+  const [isLoadingScreener, setIsLoadingScreener] = useState(false);
+
   // Interactive Live Simulator State
   const [customHeadline, setCustomHeadline] = useState('');
   const [simResult, setSimResult] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
-  const [simScenario, setSimScenario] = useState('bullish'); // 'bullish' | 'bearish' | 'neutral'
 
   // Fetch Metadata & Trace on Asset Change
   useEffect(() => {
@@ -85,6 +85,23 @@ export default function InteractiveWorkstation() {
         }
       })
       .catch(err => console.error(err));
+
+    // Fetch Screener.in intelligence if Indian Stock
+    if (selectedAsset.isStock) {
+      setIsLoadingScreener(true);
+      fetch(`${API_BASE}/screener-intel?ticker=${encodeURIComponent(selectedAsset.ticker)}`)
+        .then(res => res.json())
+        .then(data => {
+          setScreenerIntel(data);
+          setIsLoadingScreener(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setIsLoadingScreener(false);
+        });
+    } else {
+      setScreenerIntel(null);
+    }
   }, [selectedAsset]);
 
   const handleSimulate = (headlineText) => {
@@ -105,12 +122,6 @@ export default function InteractiveWorkstation() {
         console.error(err);
         setIsSimulating(false);
       });
-  };
-
-  const getShockColor = (mag) => {
-    if (mag >= 3.0) return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
-    if (mag >= 2.0) return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
-    return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
   };
 
   return (
@@ -152,7 +163,12 @@ export default function InteractiveWorkstation() {
               return (
                 <button
                   key={asset.ticker}
-                  onClick={() => setSelectedAsset(asset)}
+                  onClick={() => {
+                    setSelectedAsset(asset);
+                    if (!asset.isStock && activeTab === 'screener') {
+                      setActiveTab('chart');
+                    }
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -184,11 +200,11 @@ export default function InteractiveWorkstation() {
           </div>
           <div style={{ color: '#64748b' }}>|</div>
           <div style={{ color: '#94a3b8' }}>
-            Ingested: <strong style={{ color: '#f1f5f9' }}>{metadata.events_count.toLocaleString()}</strong> Headlines
+            Ingested: <strong style={{ color: '#f1f5f9' }}>{(metadata?.events_count ?? 2670).toLocaleString()}</strong> Headlines
           </div>
           <div style={{ color: '#64748b' }}>|</div>
           <div style={{ color: '#94a3b8' }}>
-            Bars: <strong style={{ color: '#f1f5f9' }}>{metadata.price_bars_count.toLocaleString()}</strong>
+            Bars: <strong style={{ color: '#f1f5f9' }}>{(metadata?.price_bars_count ?? 8331).toLocaleString()}</strong>
           </div>
         </div>
       </header>
@@ -202,7 +218,6 @@ export default function InteractiveWorkstation() {
         gridTemplateColumns: 'repeat(5, 1fr)',
         gap: '16px'
       }}>
-        {/* Metric 1: Median Reaction Speed */}
         <div style={{ backgroundColor: '#0d111a', border: '1px solid #1a2233', borderRadius: '8px', padding: '12px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '11px', fontWeight: 600 }}>
             <span>REACTION SPEED (P-LAG)</span>
@@ -216,7 +231,6 @@ export default function InteractiveWorkstation() {
           </div>
         </div>
 
-        {/* Metric 2: Win Rate */}
         <div style={{ backgroundColor: '#0d111a', border: '1px solid #1a2233', borderRadius: '8px', padding: '12px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '11px', fontWeight: 600 }}>
             <span>DIRECTIONAL HIT RATE</span>
@@ -230,7 +244,6 @@ export default function InteractiveWorkstation() {
           </div>
         </div>
 
-        {/* Metric 3: Shock Absorption */}
         <div style={{ backgroundColor: '#0d111a', border: '1px solid #1a2233', borderRadius: '8px', padding: '12px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '11px', fontWeight: 600 }}>
             <span>NULL DRIFT ABSORPTION</span>
@@ -244,7 +257,6 @@ export default function InteractiveWorkstation() {
           </div>
         </div>
 
-        {/* Metric 4: Volatility Scaling */}
         <div style={{ backgroundColor: '#0d111a', border: '1px solid #1a2233', borderRadius: '8px', padding: '12px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '11px', fontWeight: 600 }}>
             <span>DRIFT CALIBRATION</span>
@@ -258,7 +270,6 @@ export default function InteractiveWorkstation() {
           </div>
         </div>
 
-        {/* Metric 5: Selected Instrument */}
         <div style={{ backgroundColor: '#0d111a', border: '1px solid #00f2fe30', borderRadius: '8px', padding: '12px 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '11px', fontWeight: 600 }}>
             <span>ACTIVE STATION</span>
@@ -279,7 +290,7 @@ export default function InteractiveWorkstation() {
         {/* LEFT COLUMN: INTERACTIVE CHART & SHOCKWAVE STUDIO */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* Main Chart Canvas Container */}
+          {/* Main Chart / Screener Toggle Container */}
           <div style={{
             backgroundColor: '#0d111a',
             border: '1px solid #1a2233',
@@ -290,17 +301,47 @@ export default function InteractiveWorkstation() {
             gap: '16px'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>{selectedAsset.icon}</span>
-                  <span>{selectedAsset.name} Event Impact Trace</span>
-                </h3>
-                <p style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                  Microstructure 1-minute price series synchronized with breaking news events
-                </p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setActiveTab('chart')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    backgroundColor: activeTab === 'chart' ? '#00f2fe' : '#131926',
+                    color: activeTab === 'chart' ? '#080a0f' : '#94a3b8',
+                    border: 'none'
+                  }}
+                >
+                  ⚡ Real-Time Price Shockwave
+                </button>
+                
+                {selectedAsset.isStock && (
+                  <button
+                    onClick={() => setActiveTab('screener')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      backgroundColor: activeTab === 'screener' ? '#10b981' : '#131926',
+                      color: activeTab === 'screener' ? '#080a0f' : '#94a3b8',
+                      border: 'none'
+                    }}
+                  >
+                    <Building2 size={14} />
+                    <span>Screener.in Fundamentals & Filings</span>
+                  </button>
+                )}
               </div>
 
-              {selectedEvent && (
+              {selectedEvent && activeTab === 'chart' && (
                 <div style={{
                   padding: '6px 12px',
                   backgroundColor: '#131926',
@@ -321,27 +362,59 @@ export default function InteractiveWorkstation() {
               )}
             </div>
 
-            {/* Interactive Recharts Area */}
-            <div style={{ width: '100%', height: 320, backgroundColor: '#080a0f', borderRadius: '8px', padding: '12px 12px 0 0' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={traceData}>
-                  <defs>
-                    <linearGradient id="traceGlow" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#00f2fe" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="time" stroke="#334155" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#334155" fontSize={10} domain={['auto', 'auto']} unit="%" tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#0d111a', border: '1px solid #25334d', borderRadius: '8px', color: '#f1f5f9' }}
-                    labelStyle={{ color: '#00f2fe', fontWeight: 700 }}
-                  />
-                  <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
-                  <Area type="monotone" dataKey="returnPct" stroke="#00f2fe" strokeWidth={2} fill="url(#traceGlow)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            {/* View A: Recharts Area Chart */}
+            {activeTab === 'chart' && (
+              <div style={{ width: '100%', height: 320, backgroundColor: '#080a0f', borderRadius: '8px', padding: '12px 12px 0 0' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={traceData}>
+                    <defs>
+                      <linearGradient id="traceGlow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#00f2fe" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="time" stroke="#334155" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#334155" fontSize={10} domain={['auto', 'auto']} unit="%" tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#0d111a', border: '1px solid #25334d', borderRadius: '8px', color: '#f1f5f9' }}
+                      labelStyle={{ color: '#00f2fe', fontWeight: 700 }}
+                    />
+                    <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
+                    <Area type="monotone" dataKey="returnPct" stroke="#00f2fe" strokeWidth={2} fill="url(#traceGlow)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* View B: Screener.in Fundamental Ratios & Announcements */}
+            {activeTab === 'screener' && screenerIntel && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Ratios Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                  {Object.entries(screenerIntel.ratios || {}).slice(0, 8).map(([key, val], idx) => (
+                    <div key={idx} style={{ backgroundColor: '#080a0f', padding: '10px 14px', borderRadius: '6px', border: '1px solid #1a2233' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>{key.toUpperCase()}</div>
+                      <div style={{ fontSize: '15px', fontWeight: 700, color: '#10b981', marginTop: '2px' }}>{val}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Recent Filings & Announcements */}
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#00f2fe', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <FileText size={14} />
+                    <span>Recent Screener.in Corporate Disclosures & Filings</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {(screenerIntel.announcements || []).slice(0, 4).map((ann, idx) => (
+                      <div key={idx} style={{ padding: '8px 12px', backgroundColor: '#080a0f', borderRadius: '4px', border: '1px solid #1a2233', fontSize: '11px', color: '#cbd5e1' }}>
+                        • {ann}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ⚡ REAL-TIME HEADLINE SHOCK SIMULATOR (HIGH INTERACTIVITY) */}
