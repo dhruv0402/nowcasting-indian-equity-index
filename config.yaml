@@ -1,66 +1,84 @@
 # Universal Institutional Multi-Asset Universe Configuration
 tickers:
-  # --- Indian Benchmark Indices & GIFT City ---
+  # --- Benchmark Indices & GIFT City ---
   - "^NSEI"          # NIFTY 50 (National Stock Exchange)
   - "^BSESN"         # S&P BSE SENSEX 30
   - "^NSEBANK"       # NIFTY BANK Index
   - "^CNXIT"         # NIFTY IT Index
   - "INDA"           # iShares MSCI India ETF (GIFT / Global India Proxy)
 
-  # --- Indian Mega-Caps & F&O Leaders ---
-  - "RELIANCE.NS"    # Reliance Industries (Energy & Retail)
-  - "TCS.NS"         # Tata Consultancy Services (IT)
-  - "HDFCBANK.NS"    # HDFC Bank (Private Banking)
-  - "ICICIBANK.NS"   # ICICI Bank (Banking)
-  - "INFY.NS"        # Infosys (IT)
-  - "TATAMOTORS.NS"  # Tata Motors (Auto / EV)
-  - "SBIN.NS"        # State Bank of India (PSU Banking)
-  - "BHARTIARTL.NS"  # Bharti Airtel (Telecom)
-  - "LICI.NS"        # Life Insurance Corp of India
-  - "ITC.NS"         # ITC Ltd (FMCG)
+  # --- Indian Mega-Caps ---
+  - "RELIANCE.NS"    # Reliance Industries
+  - "TCS.NS"         # Tata Consultancy Services
+  - "HDFCBANK.NS"    # HDFC Bank
+  - "ICICIBANK.NS"   # ICICI Bank
+  - "INFY.NS"        # Infosys
+  - "SBIN.NS"        # State Bank of India
+  - "ITC.NS"         # ITC Limited
+
+  # --- Indian Mid-Caps & Growth Leaders ---
+  - "POLYCAB.NS"     # Polycab India (Wires & Cables / Infra)
+  - "KPITTECH.NS"    # KPIT Technologies (Automotive Software)
+  - "TATAELXSI.NS"   # Tata Elxsi (Design & Tech)
+  - "JIOFIN.NS"      # Jio Financial Services (Fintech / NBFC)
+
+  # --- Indian Small-Caps & High-Beta Momentum ---
+  - "SUZLON.NS"      # Suzlon Energy (Green Energy / Wind)
+  - "IREDA.NS"       # Indian Renewable Energy Dev Agency (PSU Solar/Wind)
+  - "RVNL.NS"        # Rail Vikas Nigam Ltd (Rail Infrastructure)
+  - "KAYNES.NS"      # Kaynes Technology (EMS / Semiconductors)
+
+  # --- MCX Commodities & Derivatives ---
+  - "MCX.NS"         # Multi Commodity Exchange of India Ltd
+  - "GC=F"           # MCX / COMEX Gold Futures
+  - "SI=F"           # MCX / COMEX Silver Futures
+  - "CL=F"           # MCX / NYMEX WTI Crude Oil
+  - "NG=F"           # MCX Natural Gas
+  - "HG=F"           # MCX Copper Futures
 
   # --- US Benchmark Indices & Tech Giants (Magnificent 7) ---
   - "^GSPC"          # S&P 500 Benchmark Index
   - "^IXIC"          # NASDAQ Composite
-  - "^DJI"           # Dow Jones Industrial Average
   - "NVDA"           # NVIDIA Corporation (AI Computing)
-  - "AAPL"           # Apple Inc (Consumer Tech)
-  - "MSFT"           # Microsoft Corporation (Cloud & Enterprise)
-  - "GOOGL"          # Alphabet / Google (Search & AI)
-  - "AMZN"           # Amazon.com (E-Commerce & AWS)
-  - "META"           # Meta Platforms (Social Tech)
-  - "TSLA"           # Tesla (Automotive & Clean Energy)
+  - "AAPL"           # Apple Inc
+  - "MSFT"           # Microsoft Corporation
+  - "GOOGL"          # Alphabet / Google
+  - "AMZN"           # Amazon.com
+  - "META"           # Meta Platforms
+  - "TSLA"           # Tesla
 
-  # --- Global Commodities & Interbank Forex ---
-  - "GC=F"           # Gold Futures
-  - "CL=F"           # WTI Crude Oil
-  - "USDINR=X"       # USD / INR Spot Rate
-  - "EURUSD=X"       # EUR / USD Spot Rate
-
-  # --- Digital Assets & Crypto (24/7) ---
+  # --- 24/7 Digital Assets & Crypto ---
   - "BTC-USD"        # Bitcoin
   - "ETH-USD"        # Ethereum
   - "SOL-USD"        # Solana
 
 asset_classes:
   gift_and_indian_indices:
-    name: "GIFT Nifty & Indian Benchmark Indices"
+    name: "GIFT Nifty & Benchmark Indices"
     tickers: ["^NSEI", "^BSESN", "^NSEBANK", "^CNXIT", "INDA"]
     market_hours: "NSE"
-  indian_equities:
-    name: "Indian Mega-Cap Blue-Chips"
-    tickers: ["RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", "TATAMOTORS.NS", "SBIN.NS", "BHARTIARTL.NS", "LICI.NS", "ITC.NS"]
+  indian_mega_caps:
+    name: "Indian Large-Caps"
+    tickers: ["RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", "SBIN.NS", "ITC.NS"]
     market_hours: "NSE"
-  us_indices_and_tech:
-    name: "US Benchmarks & Magnificent-7 Tech"
-    tickers: ["^GSPC", "^IXIC", "^DJI", "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA"]
-    market_hours: "US"
-  commodities_and_forex:
-    name: "Global Commodities & Forex"
-    tickers: ["GC=F", "CL=F", "USDINR=X", "EURUSD=X"]
+  indian_mid_caps:
+    name: "Indian Mid-Caps"
+    tickers: ["POLYCAB.NS", "KPITTECH.NS", "TATAELXSI.NS", "JIOFIN.NS"]
+    market_hours: "NSE"
+  indian_small_and_micro:
+    name: "Indian Small & Micro-Caps"
+    tickers: ["SUZLON.NS", "IREDA.NS", "RVNL.NS", "KAYNES.NS"]
+    market_hours: "NSE"
+  mcx_commodities:
+    name: "MCX Commodities & Exchange"
+    tickers: ["MCX.NS", "GC=F", "SI=F", "CL=F", "NG=F", "HG=F"]
     market_hours: "GLOBAL"
+  us_indices_and_tech:
+    name: "US Benchmarks & Mag-7 Tech"
+    tickers: ["^GSPC", "^IXIC", "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA"]
+    market_hours: "US"
   crypto:
-    name: "24/7 Digital Assets & Crypto"
+    name: "24/7 Digital Assets"
     tickers: ["BTC-USD", "ETH-USD", "SOL-USD"]
     market_hours: "24/7"
 

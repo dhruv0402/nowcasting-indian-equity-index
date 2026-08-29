@@ -28,31 +28,46 @@ const ASSETS = [
   { ticker: '^BSESN', name: 'S&P BSE SENSEX', class: 'Indian Index', currency: '₹', icon: '🇮🇳', isStock: false },
   { ticker: 'INDA', name: 'GIFT Nifty / MSCI India', class: 'GIFT City / Global Index', currency: '$', icon: '🌐', isStock: false },
   { ticker: '^NSEBANK', name: 'NIFTY BANK', class: 'Indian Banking Index', currency: '₹', icon: '🏦', isStock: false },
+  { ticker: '^NSEMDCP50', name: 'NIFTY MIDCAP 50', class: 'Indian Mid-Cap Index', currency: '₹', icon: '📈', isStock: false },
 
-  // --- Indian Mega-Cap Equities ---
-  { ticker: 'RELIANCE.NS', name: 'Reliance Industries', class: 'Indian Energy & Retail', currency: '₹', icon: '🏢', isStock: true },
-  { ticker: 'TCS.NS', name: 'Tata Consultancy Services', class: 'Indian IT Major', currency: '₹', icon: '💻', isStock: true },
-  { ticker: 'HDFCBANK.NS', name: 'HDFC Bank', class: 'Indian Private Banking', currency: '₹', icon: '🏦', isStock: true },
-  { ticker: 'ICICIBANK.NS', name: 'ICICI Bank', class: 'Indian Banking Major', currency: '₹', icon: '💳', isStock: true },
-  { ticker: 'INFY.NS', name: 'Infosys Limited', class: 'Indian Tech / Cloud', currency: '₹', icon: '⚡', isStock: true },
-  { ticker: 'SBIN.NS', name: 'State Bank of India', class: 'Indian PSU Banking', currency: '₹', icon: '🏛️', isStock: true },
-  { ticker: 'ITC.NS', name: 'ITC Limited', class: 'Indian FMCG Major', currency: '₹', icon: '📦', isStock: true },
+  // --- Indian Mega-Caps ---
+  { ticker: 'RELIANCE.NS', name: 'Reliance Industries', class: 'Indian Large-Cap', currency: '₹', icon: '🏢', isStock: true },
+  { ticker: 'TCS.NS', name: 'TCS', class: 'Indian Large-Cap', currency: '₹', icon: '💻', isStock: true },
+  { ticker: 'HDFCBANK.NS', name: 'HDFC Bank', class: 'Indian Large-Cap', currency: '₹', icon: '🏦', isStock: true },
+  { ticker: 'ICICIBANK.NS', name: 'ICICI Bank', class: 'Indian Large-Cap', currency: '₹', icon: '💳', isStock: true },
+  { ticker: 'INFY.NS', name: 'Infosys', class: 'Indian Large-Cap', currency: '₹', icon: '⚡', isStock: true },
+  { ticker: 'SBIN.NS', name: 'SBI', class: 'Indian Large-Cap', currency: '₹', icon: '🏛️', isStock: true },
 
-  // --- US Benchmarks & Magnificent 7 Tech ---
+  // --- Indian Mid-Caps (High Growth) ---
+  { ticker: 'POLYCAB.NS', name: 'Polycab India', class: 'Indian Mid-Cap (Infra/Cables)', currency: '₹', icon: '🔌', isStock: true },
+  { ticker: 'KPITTECH.NS', name: 'KPIT Tech', class: 'Indian Mid-Cap (Auto AI)', currency: '₹', icon: '🚘', isStock: true },
+  { ticker: 'TATAELXSI.NS', name: 'Tata Elxsi', class: 'Indian Mid-Cap (Design/Tech)', currency: '₹', icon: '🎨', isStock: true },
+  { ticker: 'JIOFIN.NS', name: 'Jio Financial', class: 'Indian Mid-Cap (Fintech)', currency: '₹', icon: '📱', isStock: true },
+
+  // --- Indian Small & Micro-Caps (High Beta Momentum) ---
+  { ticker: 'SUZLON.NS', name: 'Suzlon Energy', class: 'Indian Small-Cap (Green Energy)', currency: '₹', icon: '🌪️', isStock: true },
+  { ticker: 'IREDA.NS', name: 'IREDA', class: 'Indian Small-Cap (Renewable PSU)', currency: '₹', icon: '☀️', isStock: true },
+  { ticker: 'RVNL.NS', name: 'RVNL', class: 'Indian Small-Cap (Rail Infra)', currency: '₹', icon: '🚆', isStock: true },
+  { ticker: 'KAYNES.NS', name: 'Kaynes Tech', class: 'Indian Micro/Small-Cap (EMS)', currency: '₹', icon: '🔬', isStock: true },
+
+  // --- MCX Commodities & Exchange ---
+  { ticker: 'MCX.NS', name: 'MCX India Exchange', class: 'Commodities Exchange Stock', currency: '₹', icon: '🏛️', isStock: true },
+  { ticker: 'GC=F', name: 'MCX Gold Futures', class: 'MCX Precious Metals', currency: '$', icon: '🟡', isStock: false },
+  { ticker: 'SI=F', name: 'MCX Silver Futures', class: 'MCX Precious Metals', currency: '$', icon: '⚪', isStock: false },
+  { ticker: 'CL=F', name: 'MCX Crude Oil', class: 'MCX Energy', currency: '$', icon: '🛢️', isStock: false },
+  { ticker: 'NG=F', name: 'MCX Natural Gas', class: 'MCX Energy', currency: '$', icon: '🔥', isStock: false },
+  { ticker: 'HG=F', name: 'MCX Copper', class: 'MCX Base Metals', currency: '$', icon: '🥉', isStock: false },
+
+  // --- US Tech Giants (Magnificent 7) ---
   { ticker: '^GSPC', name: 'S&P 500', class: 'US Benchmark Index', currency: '$', icon: '🇺🇸', isStock: false },
-  { ticker: 'NVDA', name: 'NVIDIA Corp', class: 'US AI & Datacenter', currency: '$', icon: '🟢', isStock: false },
-  { ticker: 'AAPL', name: 'Apple Inc', class: 'US Consumer Tech', currency: '$', icon: '🍎', isStock: false },
-  { ticker: 'MSFT', name: 'Microsoft', class: 'US Cloud & AI', currency: '$', icon: '🪟', isStock: false },
-  { ticker: 'GOOGL', name: 'Google / Alphabet', class: 'US Search & AI', currency: '$', icon: '🔍', isStock: false },
-  { ticker: 'AMZN', name: 'Amazon.com', class: 'US E-Commerce & AWS', currency: '$', icon: '📦', isStock: false },
-  { ticker: 'META', name: 'Meta Platforms', class: 'US Social Tech & VR', currency: '$', icon: '👥', isStock: false },
-  { ticker: 'TSLA', name: 'Tesla Inc', class: 'US EV & Robotics', currency: '$', icon: '🚗', isStock: false },
+  { ticker: 'NVDA', name: 'NVIDIA', class: 'US Mag-7 AI', currency: '$', icon: '🟢', isStock: false },
+  { ticker: 'AAPL', name: 'Apple', class: 'US Mag-7 Tech', currency: '$', icon: '🍎', isStock: false },
+  { ticker: 'MSFT', name: 'Microsoft', class: 'US Mag-7 Cloud', currency: '$', icon: '🪟', isStock: false },
+  { ticker: 'TSLA', name: 'Tesla', class: 'US Mag-7 EV', currency: '$', icon: '🚗', isStock: false },
 
-  // --- Commodities & Crypto ---
+  // --- Crypto 24/7 ---
   { ticker: 'BTC-USD', name: 'Bitcoin (24/7)', class: 'Crypto', currency: '$', icon: '₿', isStock: false },
   { ticker: 'ETH-USD', name: 'Ethereum (24/7)', class: 'Crypto', currency: '$', icon: 'Ξ', isStock: false },
-  { ticker: 'GC=F', name: 'Gold Futures', class: 'Commodities', currency: '$', icon: '🟡', isStock: false },
-  { ticker: 'CL=F', name: 'Crude Oil (WTI)', class: 'Energy', currency: '$', icon: '🛢️', isStock: false },
 ];
 
 export default function InteractiveWorkstation() {
