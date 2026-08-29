@@ -59,7 +59,7 @@ export default function App() {
             SEISMIC MONITORING STATION TERMINAL :: NOWCASTING ENGINE
           </div>
           <div className="nav-subtitle" style={{ color: '#64748B', fontSize: '11px' }}>
-            A Lag-Aware Real-Time Short-Horizon Research Terminal (^NSEI NIFTY 50 / ^BSESN SENSEX 30)
+            Universal Quantitative Event-Driven Microstructure & Lag Terminal (Indices • Equities • Crypto • Commodities • Forex)
           </div>
         </div>
         <div className="nav-status" style={{ fontSize: '11px', color: '#94A3B8' }}>
@@ -83,47 +83,53 @@ export default function App() {
       <div className="main-layout" style={{ gridTemplateColumns: '320px 1fr' }}>
         {/* Sidebar Controls */}
         <aside className="sidebar" style={{ backgroundColor: '#0E1420', borderRight: '1px solid #1C2638', padding: '20px', gap: '20px' }}>
-          {/* Station Channel Selector */}
+          {/* Multi-Asset Station Channel Selector */}
           <div className="control-group">
             <label className="control-label" style={{ color: '#00F0FF', fontSize: '11px', letterSpacing: '0.05em' }}>
-              SELECT STATION CHANNEL
+              SELECT ASSET CLASS & TICKER
             </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => setTicker('^NSEI')}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  backgroundColor: ticker === '^NSEI' ? '#00F0FF' : '#080B11',
-                  color: ticker === '^NSEI' ? '#080B11' : '#94A3B8',
-                  border: '1px solid #1C2638',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  borderRadius: '2px'
-                }}
-              >
-                ^NSEI (NIFTY)
-              </button>
-              <button
-                onClick={() => setTicker('^BSESN')}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  backgroundColor: ticker === '^BSESN' ? '#00F0FF' : '#080B11',
-                  color: ticker === '^BSESN' ? '#080B11' : '#94A3B8',
-                  border: '1px solid #1C2638',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  borderRadius: '2px'
-                }}
-              >
-                ^BSESN (SENSEX)
-              </button>
-            </div>
+            <select
+              value={ticker}
+              onChange={(e) => setTicker(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                backgroundColor: '#080B11',
+                color: '#00F0FF',
+                border: '1px solid #00F0FF',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                borderRadius: '4px',
+                outline: 'none'
+              }}
+            >
+              <optgroup label="🇮🇳 Indian Benchmark Indices">
+                <option value="^NSEI">^NSEI (NIFTY 50 Index)</option>
+                <option value="^BSESN">^BSESN (S&P BSE SENSEX)</option>
+              </optgroup>
+              <optgroup label="🏢 Indian Blue-Chip Equities">
+                <option value="RELIANCE.NS">RELIANCE.NS (Reliance Industries)</option>
+                <option value="HDFCBANK.NS">HDFCBANK.NS (HDFC Bank)</option>
+              </optgroup>
+              <optgroup label="🇺🇸 US Equities & Tech">
+                <option value="^GSPC">^GSPC (S&P 500 Index)</option>
+                <option value="NVDA">NVDA (NVIDIA AI Computing)</option>
+                <option value="AAPL">AAPL (Apple Inc.)</option>
+              </optgroup>
+              <optgroup label="⚡ Digital Assets / Crypto (24/7)">
+                <option value="BTC-USD">BTC-USD (Bitcoin)</option>
+                <option value="ETH-USD">ETH-USD (Ethereum)</option>
+              </optgroup>
+              <optgroup label="🛢️ Global Commodities">
+                <option value="GC=F">GC=F (Gold Futures)</option>
+                <option value="CL=F">CL=F (WTI Crude Oil)</option>
+              </optgroup>
+              <optgroup label="💱 Foreign Exchange (Forex)">
+                <option value="USDINR=X">USDINR=X (USD / INR)</option>
+              </optgroup>
+            </select>
           </div>
 
           {/* Richter Magnitude Scale Gauge */}

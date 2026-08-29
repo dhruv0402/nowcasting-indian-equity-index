@@ -1,29 +1,85 @@
+# Multi-Asset Universe Configuration
 tickers:
-  - "^NSEI"   # NIFTY 50
-  - "^BSESN"  # SENSEX
+  - "^NSEI"        # NIFTY 50
+  - "^BSESN"       # S&P BSE SENSEX
+  - "RELIANCE.NS"  # Reliance Industries (Indian Equities)
+  - "HDFCBANK.NS"  # HDFC Bank (Indian Banking)
+  - "^GSPC"        # S&P 500 (US Benchmark)
+  - "NVDA"         # NVIDIA (US AI/Tech)
+  - "AAPL"         # Apple (US Tech)
+  - "BTC-USD"      # Bitcoin (Crypto 24/7)
+  - "ETH-USD"      # Ethereum (Crypto 24/7)
+  - "GC=F"         # Gold Futures (Commodities)
+  - "CL=F"         # WTI Crude Oil (Commodities)
+  - "USDINR=X"     # USD/INR (Forex)
+
+asset_classes:
+  indian_indices:
+    name: "Indian Benchmark Indices"
+    tickers: ["^NSEI", "^BSESN"]
+    market_hours: "NSE"  # 09:15 - 15:30 IST
+  indian_equities:
+    name: "Indian Blue-Chip Equities"
+    tickers: ["RELIANCE.NS", "HDFCBANK.NS"]
+    market_hours: "NSE"
+  us_equities:
+    name: "US Equities & Tech"
+    tickers: ["^GSPC", "NVDA", "AAPL"]
+    market_hours: "US"   # 09:30 - 16:00 EST
+  crypto:
+    name: "Digital Assets / Crypto"
+    tickers: ["BTC-USD", "ETH-USD"]
+    market_hours: "24/7"
+  commodities:
+    name: "Global Commodities"
+    tickers: ["GC=F", "CL=F"]
+    market_hours: "GLOBAL"
+  forex:
+    name: "Foreign Exchange"
+    tickers: ["USDINR=X"]
+    market_hours: "GLOBAL"
 
 data_collection:
-  mode: "rolling"        # "rolling" (Option A), "historical_daily" (Option B), or "synthetic"
+  mode: "rolling"
   min_collection_days: 21
   rss_feeds:
+    # --- Indian Financial & Macro Feeds ---
     - name: "Economic Times Markets"
       url: "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"
+      category: "indian_equities"
     - name: "Economic Times Stocks"
       url: "https://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms"
+      category: "indian_equities"
     - name: "Economic Times Economy"
       url: "https://economictimes.indiatimes.com/news/economy/rssfeeds/1373380680.cms"
-    - name: "Moneycontrol Top News"
-      url: "https://www.moneycontrol.com/rss/MCtopnews.xml"
-    - name: "Moneycontrol Business"
-      url: "https://www.moneycontrol.com/rss/business.xml"
-    - name: "Google News Nifty Sensex"
-      url: "https://news.google.com/rss/search?q=nifty+sensex+stock+market+india&hl=en-IN&gl=IN&ceid=IN:en"
-    - name: "Google News Macro Earnings"
-      url: "https://news.google.com/rss/search?q=RBI+repo+rate+earnings+results+India&hl=en-IN&gl=IN&ceid=IN:en"
+      category: "macro_data"
     - name: "Livemint Markets"
       url: "https://www.livemint.com/rss/markets"
-    - name: "Business Standard Markets"
-      url: "https://www.business-standard.com/rss/markets-106.rss"
+      category: "indian_equities"
+    - name: "Moneycontrol Top News"
+      url: "https://www.moneycontrol.com/rss/MCtopnews.xml"
+      category: "indian_equities"
+    - name: "Google News Nifty Sensex"
+      url: "https://news.google.com/rss/search?q=nifty+sensex+stock+market+india&hl=en-IN&gl=IN&ceid=IN:en"
+      category: "indian_equities"
+    # --- US & Global Tech / Macro Feeds ---
+    - name: "CNBC Top Markets"
+      url: "https://search.cnbc.com/rs/search/view.html?partnerId=2000&keywords=markets&sort=date"
+      category: "us_equities"
+    - name: "Google News US Markets"
+      url: "https://news.google.com/rss/search?q=wall+street+fed+nvidia+apple+sp500&hl=en-US&gl=US&ceid=US:en"
+      category: "us_equities"
+    # --- Crypto & Digital Assets Feeds ---
+    - name: "CoinDesk Latest"
+      url: "https://www.coindesk.com/arc/outboundfeeds/rss/"
+      category: "crypto"
+    - name: "CoinTelegraph News"
+      url: "https://cointelegraph.com/rss"
+      category: "crypto"
+    # --- Commodities & Energy Feeds ---
+    - name: "OilPrice Energy News"
+      url: "https://oilprice.com/rss/main"
+      category: "commodities"
 
 lag_detection:
   baseline_window_min: 15

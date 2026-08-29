@@ -43,6 +43,22 @@ def get_metadata():
         "status": "active"
     }
 
+@app.get("/api/universe")
+def get_universe():
+    import yaml
+    with open("config.yaml", "r") as f:
+        config = yaml.safe_load(f)
+        
+    return {
+        "tickers": config.get("tickers", ["^NSEI", "^BSESN"]),
+        "asset_classes": config.get("asset_classes", {
+            "indian_indices": {
+                "name": "Indian Benchmark Indices",
+                "tickers": ["^NSEI", "^BSESN"]
+            }
+        })
+    }
+
 @app.get("/api/metrics")
 def get_metrics(
     ticker: str = Query("^NSEI"),

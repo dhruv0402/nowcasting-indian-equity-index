@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nowcasting-backend-api
+    ports:
+      - "8000:8000"
+    environment:
+      - SUPABASE_DB_URL=${SUPABASE_DB_URL}
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  collector-daemon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nowcasting-collector-daemon
+    command: ["python", "-u", "src/ingestion/collector_daemon.py", "--interval-min", "5"]
+    environment:
+      - SUPABASE_DB_URL=${SUPABASE_DB_URL}
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

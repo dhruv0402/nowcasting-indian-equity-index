@@ -14,43 +14,65 @@ from src.utils.logging_config import setup_logging
 
 logger = setup_logging()
 
-def is_nse_market_hours(utc_dt: datetime.datetime = None) -> bool:
+def get_active_tickers_for_time(config: dict, utc_dt: datetime.datetime = None) -> list:
     """
-    Checks if current UTC time falls within NSE trading hours:
-    09:15 AM to 03:30 PM IST (03:45 AM to 10:00 AM UTC), Monday through Friday.
+    Determines which tickers are actively trading based on their asset class and UTC time:
+    - Crypto (BTC-USD, ETH-USD): 24/7 continuous trading
+    - Indian Markets (^NSEI, ^BSESN, RELIANCE.NS, etc.): Mon-Fri 03:45 to 10:00 UTC (09:15-15:30 IST)
+    - US Markets (^GSPC, NVDA, AAPL): Mon-Fri 13:30 to 20:00 UTC (09:30-16:00 EST)
+    - Global Commodities / Forex (GC=F, CL=F, USDINR=X): Mon-Fri 00:00 to 22:00 UTC
     """
     if utc_dt is None:
-        utc_dt = datetime.datetime.utcnow()
+        utc_dt = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
         
-    # Check weekday (0 = Monday, 4 = Friday, 5 = Saturday, 6 = Sunday)
-    if utc_dt.weekday() >= 5:
-        return False
+    weekday = utc_dt.weekday() # 0 = Monday, 6 = Sunday
+    minute_utc = utc_dt.hour * 60 + utc_dt.minute
+    
+    active_tickers = []
+    asset_classes = config.get("asset_classes", {})
+    
+    for ac_key, ac_val in asset_classes.items():
+        m_type = ac_val.get("market_hours", "24/7")
+        tickers = ac_val.get("tickers", [])
         
-    minute_of_day_utc = utc_dt.hour * 60 + utc_dt.minute
-    # 03:45 UTC = 225 mins, 10:00 UTC = 600 mins
-    if 225 <= minute_of_day_utc <= 600:
-        return True
+        if m_type == "24/7":
+            active_tickers.extend(tickers)
+        elif weekday < 5: # Mon-Fri
+            if m_type == "NSE" and (225 <= minute_utc <= 600):
+                active_tickers.extend(tickers)
+            elif m_type == "US" and (810 <= minute_utc <= 1200):
+                active_tickers.extend(tickers)
+            elif m_type == "GLOBAL" and (0 <= minute_utc <= 1320):
+                active_tickers.extend(tickers)
+                
+    # Fallback to configured tickers list if asset_classes not defined
+    if not active_tickers and weekday < 5:
+        active_tickers = config.get("tickers", ["^NSEI", "^BSESN"])
         
-    return False
+    return list(set(active_tickers))
 
 def run_collection_cycle(config_path="config.yaml", db_path="data/db.sqlite", force_price_poll=False):
-    now_utc = datetime.datetime.utcnow()
+    now_utc = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
     now_str = now_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
-    in_market_hours = is_nse_market_hours(now_utc)
     
-    logger.info(f"--- Starting Rolling Data Collection Cycle at {now_str} (Market Open: {in_market_hours}) ---")
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+        
+    active_tickers = get_active_tickers_for_time(config, now_utc) if not force_price_poll else config.get("tickers", ["^NSEI"])
+    
+    logger.info(f"--- Starting Multi-Asset Data Collection Cycle at {now_str} (Active Tickers: {len(active_tickers)}) ---")
     
     try:
-        # 1. Collect RSS news (RSS can be collected anytime as headlines drop 24/7)
+        # 1. Collect RSS news 24/7 across global feeds
         news_count = run_news_ingestion(config_path=config_path, use_synthetic=False, db_path=db_path)
         
-        # 2. Collect price bars (Only poll price bars during market hours or if forced)
+        # 2. Collect price bars for active market tickers
         price_count = 0
-        if in_market_hours or force_price_poll:
+        if active_tickers:
             price_count = run_price_ingestion(config_path=config_path, use_synthetic=False, db_path=db_path)
             run_lag_engine(config_path=config_path, db_path=db_path)
         else:
-            logger.info("Market is closed. Skipping yfinance price polling to conserve rate limits.")
+            logger.info("All traditional equity markets closed for weekend. Crypto polling active.")
             
         # 3. Extract features for new events
         build_event_features(config_path=config_path, db_path=db_path)
