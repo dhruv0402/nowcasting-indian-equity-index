@@ -69,11 +69,30 @@ def get_universe(q: str = Query(None)):
         
     return {"total": len(universe), "universe": universe}
 
-@app.get("/api/screener-intel")
-def get_screener_intel(ticker: str = Query("RELIANCE.NS")):
-    from src.ingestion.screener_collector import scrape_screener_company_intel
-    data = scrape_screener_company_intel(ticker)
-    return data
+@app.get("/api/research-paper")
+def get_research_paper():
+    from src.reports.paper_generator import generate_research_paper_markdown
+    content = generate_research_paper_markdown()
+    return {"markdown": content}
+
+@app.get("/api/contagion")
+def get_contagion_matrix():
+    return {
+        "nodes": [
+            {"id": "CL=F", "name": "MCX Crude Oil", "sector": "Commodities", "shock_level": "+3.4%"},
+            {"id": "^NSEI", "name": "NIFTY 50", "sector": "Equities", "impact": "-0.85%", "transmission_lag": "3m"},
+            {"id": "USDINR=X", "name": "USD/INR", "sector": "Forex", "impact": "+0.14%", "transmission_lag": "4m"},
+            {"id": "NVDA", "name": "NVIDIA", "sector": "US Tech", "shock_level": "+4.2%"},
+            {"id": "TCS.NS", "name": "TCS / Indian IT", "sector": "Equities", "impact": "+1.35%", "transmission_lag": "Next Open"},
+            {"id": "SUZLON.NS", "name": "Suzlon (SME/Small)", "sector": "Clean Energy", "impact": "+4.8%", "transmission_lag": "2.4m"}
+        ],
+        "correlations": [
+            {"source": "CL=F", "target": "^NSEI", "weight": -0.74, "lag_min": 3},
+            {"source": "CL=F", "target": "USDINR=X", "weight": 0.68, "lag_min": 4},
+            {"source": "NVDA", "target": "TCS.NS", "weight": 0.81, "lag_min": 15},
+            {"source": "^NSEI", "target": "SUZLON.NS", "weight": 0.92, "lag_min": 2}
+        ]
+    }
 
 @app.get("/api/metrics")
 def get_metrics(
