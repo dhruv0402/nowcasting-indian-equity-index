@@ -266,35 +266,12 @@ export default function SeismographDrum({ ticker = "^NSEI" }) {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Event ID Badge
-      ctx.fillStyle = ev.reaction_detected ? C.shock : C.panel;
-      ctx.fillRect(evX - 22, padTop - 22, 44, 16);
-      ctx.strokeStyle = ev.reaction_detected ? C.shock : C.border;
-      ctx.strokeRect(evX - 22, padTop - 22, 44, 16);
-
-      ctx.fillStyle = ev.reaction_detected ? "#FFFFFF" : C.text;
-      ctx.font = "bold 9px SFMono-Regular, Consolas, monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(ev.event_id, evX, padTop - 14);
-
-      // P-Wave Arrival Callout Badge on Reaction Shock
-      if (ev.reaction_detected && ev.lag_minutes) {
-        const evMs = new Date(ev.published_at).getTime();
-        const shockMs = evMs + ev.lag_minutes * 60000;
-        const shockX = getTimeX(new Date(shockMs).toISOString());
-
+      // Draw clean event arrival points (only significant shocks get subtle glowing dots)
+      if (ev.reaction_detected) {
         ctx.fillStyle = C.shock;
         ctx.beginPath();
-        ctx.arc(shockX, zeroY, 4, 0, Math.PI * 2);
+        ctx.arc(evX, zeroY, 3.5, 0, Math.PI * 2);
         ctx.fill();
-
-        ctx.fillStyle = "#FF3B5C";
-        ctx.fillRect(shockX + 6, zeroY - 18, 54, 14);
-        ctx.fillStyle = "#FFFFFF";
-        ctx.font = "bold 9px SFMono-Regular, Consolas, monospace";
-        ctx.textAlign = "left";
-        ctx.fillText(`P-${ev.lag_minutes}m SHOCK`, shockX + 10, zeroY - 10);
       }
     });
   }, [layout, events, priceBars, startTime, width]);

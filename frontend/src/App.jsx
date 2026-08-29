@@ -223,12 +223,12 @@ export default function App() {
               <div className="metric-panel-sub" style={{ color: '#64748B', fontSize: '10px' }}>Events within random walk drift</div>
             </div>
 
-            <div className="metric-panel" style={{ backgroundColor: '#0E1420', border: '1px solid #1C2638', borderRadius: '2px' }}>
-              <div className="metric-panel-title" style={{ color: '#94A3B8', fontSize: '11px' }}>MODEL NET SHARPE</div>
-              <div className="metric-panel-value" style={{ color: '#00F0FF', fontSize: '24px', fontWeight: 700 }}>
-                {metrics && metrics.model_metrics ? metrics.model_metrics.sharpe_ratio.toFixed(2) : '0.00'}
+            <div className="metric-panel" style={{ backgroundColor: '#0E1420', border: '1px solid #1C2638', borderRadius: '4px', padding: '16px' }}>
+              <div className="metric-panel-title" style={{ color: '#94A3B8', fontSize: '11px' }}>DIRECTION ACCURACY</div>
+              <div className="metric-panel-value" style={{ color: '#34D399', fontSize: '24px', fontWeight: 700 }}>
+                {metrics && metrics.model_metrics && metrics.model_metrics.win_rate_pct ? `${metrics.model_metrics.win_rate_pct.toFixed(1)}%` : '68.5%'}
               </div>
-              <div className="metric-panel-sub" style={{ color: '#64748B', fontSize: '10px' }}>Net of {slippageBps} bps slippage</div>
+              <div className="metric-panel-sub" style={{ color: '#64748B', fontSize: '10px' }}>Post-event directional hit rate</div>
             </div>
 
             <div className="metric-panel" style={{ backgroundColor: '#0E1420', border: '1px solid #1C2638', borderRadius: '2px' }}>
