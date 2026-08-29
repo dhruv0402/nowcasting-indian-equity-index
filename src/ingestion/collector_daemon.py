@@ -66,6 +66,14 @@ def run_collection_cycle(config_path="config.yaml", db_path="data/db.sqlite", fo
         # 1. Collect RSS news 24/7 across global feeds
         news_count = run_news_ingestion(config_path=config_path, use_synthetic=False, db_path=db_path)
         
+        # 1b. Ingest Tier-1 Social Squawk & FinTwit streams
+        try:
+            from src.ingestion.social_collector import run_social_squawk_ingestion
+            social_count = run_social_squawk_ingestion(db_path=db_path)
+            news_count += social_count
+        except Exception as se:
+            logger.warning(f"Social squawk ingestion skipped: {se}")
+        
         # 2. Collect price bars for active market tickers
         price_count = 0
         if active_tickers:
