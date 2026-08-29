@@ -26,6 +26,29 @@ app.add_middleware(
 def health_check():
     return {"status": "ok", "timestamp": datetime.datetime.now(datetime.UTC).isoformat()}
 
+@app.post("/api/v1/auth/generate-key")
+def generate_api_key(payload: dict):
+    from src.auth.api_keys import create_user_api_key
+    email = payload.get("email", "").strip()
+    tier = payload.get("tier", "pro").strip()
+    if not email:
+        return {"error": "Email is required"}
+    key_info = create_user_api_key(email=email, tier=tier)
+    return key_info
+
+@app.post("/api/v1/dispatch-alert")
+def dispatch_alert_endpoint(payload: dict):
+    from src.alerts.telegram_dispatcher import dispatch_telegram_alert
+    success = dispatch_telegram_alert(
+        asset_name=payload.get("asset_name", "NIFTY 50"),
+        ticker=payload.get("ticker", "^NSEI"),
+        headline=payload.get("headline", "Breaking Market Event"),
+        magnitude=payload.get("magnitude", 3.5),
+        direction=payload.get("direction", "BULLISH"),
+        p_lag=payload.get("p_lag", "4.2m")
+    )
+    return {"dispatched": success, "status": "sent"}
+
 @app.get("/api/metadata")
 def get_metadata():
     session = get_session()
