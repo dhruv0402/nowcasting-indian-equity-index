@@ -512,25 +512,32 @@ export default function InteractiveWorkstation() {
 
             {/* View A: Recharts Area Chart */}
             {activeTab === 'chart' && (
-              <div style={{ width: '100%', height: 300, backgroundColor: '#080a0f', borderRadius: '8px', padding: '10px 10px 0 0' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={traceData}>
-                    <defs>
-                      <linearGradient id="traceGlow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#00f2fe" stopOpacity={0.0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="time" stroke="#334155" fontSize={9} tickLine={false} />
-                    <YAxis stroke="#334155" fontSize={9} domain={['auto', 'auto']} unit="%" tickLine={false} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#0d111a', border: '1px solid #25334d', borderRadius: '8px', color: '#f1f5f9' }}
-                      labelStyle={{ color: '#00f2fe', fontWeight: 700 }}
-                    />
-                    <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
-                    <Area type="monotone" dataKey="returnPct" stroke="#00f2fe" strokeWidth={2} fill="url(#traceGlow)" />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div style={{ width: '100%', height: 300, backgroundColor: '#080a0f', borderRadius: '8px', padding: '10px 10px 0 0', position: 'relative' }}>
+                {traceData && traceData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={traceData}>
+                      <defs>
+                        <linearGradient id="traceGlow" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#00f2fe" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#00f2fe" stopOpacity={0.0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="time" stroke="#334155" fontSize={9} tickLine={false} />
+                      <YAxis stroke="#334155" fontSize={9} domain={['auto', 'auto']} unit="%" tickLine={false} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#0d111a', border: '1px solid #25334d', borderRadius: '8px', color: '#f1f5f9' }}
+                        labelStyle={{ color: '#00f2fe', fontWeight: 700 }}
+                      />
+                      <ReferenceLine y={0} stroke="#334155" strokeDasharray="3 3" />
+                      <Area type="monotone" dataKey="returnPct" stroke="#00f2fe" strokeWidth={2} fill="url(#traceGlow)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', gap: '8px' }}>
+                    <Activity size={24} color="#00f2fe" className="pulse-live" />
+                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>Syncing 1-Minute Order Book for {selectedAsset.name}...</span>
+                  </div>
+                )}
               </div>
             )}
 
