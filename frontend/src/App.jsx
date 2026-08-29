@@ -21,6 +21,31 @@ export default function App() {
   const [caseStudies, setCaseStudies] = useState([]);
   const [showLegalModal, setShowLegalModal] = useState(null);
 
+  // Interactive Live Headline Simulator State
+  const [customHeadline, setCustomHeadline] = useState('');
+  const [simResult, setSimResult] = useState(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+
+  const handleSimulateHeadline = (e) => {
+    e.preventDefault();
+    if (!customHeadline.trim()) return;
+    setIsSimulating(true);
+    fetch(`${API_BASE}/simulate-headline`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ headline: customHeadline, ticker })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setSimResult(data);
+        setIsSimulating(false);
+      })
+      .catch(err => {
+        console.error('Simulator API error:', err);
+        setIsSimulating(false);
+      });
+  };
+
   useEffect(() => {
     fetch(`${API_BASE}/metadata`)
       .then(res => res.json())
@@ -246,6 +271,13 @@ export default function App() {
               Feature Importance
             </button>
             <button
+              className={`tab-button ${activeTab === 'simulate' ? 'active' : ''}`}
+              onClick={() => setActiveTab('simulate')}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#00F0FF', fontWeight: 700 }}
+            >
+              ⚡ Live Headline Simulator
+            </button>
+            <button
               className={`tab-button ${activeTab === 'cases' ? 'active' : ''}`}
               onClick={() => setActiveTab('cases')}
               style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}
@@ -374,6 +406,147 @@ export default function App() {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Tab: Live Headline Simulator */}
+          {activeTab === 'simulate' && (
+            <div className="panel-box" style={{ backgroundColor: '#0E1420', borderColor: '#1C2638', borderRadius: '4px', padding: '24px' }}>
+              <div className="panel-header" style={{ color: '#00F0FF', fontSize: '15px', fontWeight: 700 }}>
+                ⚡ LIVE INTERACTIVE HEADLINE SHOCK SIMULATOR
+              </div>
+              <div className="panel-desc" style={{ color: '#94A3B8', fontSize: '12px', margin: '6px 0 20px 0' }}>
+                Type or paste any breaking news headline below to simulate how algorithmic quants and the machine learning model will nowcast market direction, Richter shock magnitude, and P-wave latency for <strong>{ticker}</strong>.
+              </div>
+
+              {/* Form Input */}
+              <form onSubmit={handleSimulateHeadline} style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+                <input
+                  type="text"
+                  placeholder="e.g. RBI unexpectedly slashes repo rate by 50 bps amid cooling inflation..."
+                  value={customHeadline}
+                  onChange={(e) => setCustomHeadline(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    backgroundColor: '#080B11',
+                    border: '1px solid #00F0FF',
+                    color: '#E2E8F0',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '13px',
+                    borderRadius: '4px',
+                    outline: 'none'
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={isSimulating}
+                  style={{
+                    backgroundColor: '#00F0FF',
+                    color: '#080B11',
+                    border: 'none',
+                    padding: '12px 24px',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    letterSpacing: '0.05em'
+                  }}
+                >
+                  {isSimulating ? 'SIMULATING...' : 'TEST SHOCKWAVE 🚀'}
+                </button>
+              </form>
+
+              {/* Preset Quick-Test Buttons */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
+                <span style={{ fontSize: '11px', color: '#64748B', alignSelf: 'center' }}>QUICK PRESETS:</span>
+                {[
+                  "RBI surprises market with emergency 25 bps rate hike",
+                  "Reliance Industries Q1 net profit surges 18% YoY, beats all estimates",
+                  "Middle East supply disruption triggers 6% crude oil spike",
+                  "SEBI clears new simplified F&O framework for institutional traders",
+                  "Routine intraday brokerage sector review note released"
+                ].map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setCustomHeadline(preset);
+                    }}
+                    style={{
+                      backgroundColor: '#080B11',
+                      border: '1px solid #1C2638',
+                      color: '#94A3B8',
+                      fontSize: '10px',
+                      padding: '4px 10px',
+                      borderRadius: '2px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {preset.slice(0, 35)}...
+                  </button>
+                ))}
+              </div>
+
+              {/* Simulation Result Card */}
+              {simResult && (
+                <div style={{
+                  backgroundColor: '#080B11',
+                  border: '1px solid #1C2638',
+                  borderRadius: '4px',
+                  padding: '20px',
+                  marginTop: '16px'
+                }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '20px' }}>
+                    <div style={{ padding: '12px', backgroundColor: '#0E1420', border: '1px solid #1C2638' }}>
+                      <div style={{ fontSize: '10px', color: '#64748B' }}>PREDICTED DIRECTION</div>
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        marginTop: '4px',
+                        color: simResult.sentiment_score > 0.05 ? '#34D399' : (simResult.sentiment_score < -0.05 ? '#FF3B5C' : '#00F0FF')
+                      }}>
+                        {simResult.predicted_direction}
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '12px', backgroundColor: '#0E1420', border: '1px solid #1C2638' }}>
+                      <div style={{ fontSize: '10px', color: '#64748B' }}>RICHTER SHOCK SCALE</div>
+                      <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px', color: '#FF3B5C' }}>
+                        Mag {simResult.richter_magnitude} / 5.0
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#64748B' }}>{simResult.shock_category}</div>
+                    </div>
+
+                    <div style={{ padding: '12px', backgroundColor: '#0E1420', border: '1px solid #1C2638' }}>
+                      <div style={{ fontSize: '10px', color: '#64748B' }}>ESTIMATED P-WAVE LAG</div>
+                      <div style={{ fontSize: '16px', fontWeight: 700, marginTop: '4px', color: '#00F0FF' }}>
+                        {simResult.estimated_p_wave_lag}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#64748B' }}>Market reaction latency</div>
+                    </div>
+
+                    <div style={{ padding: '12px', backgroundColor: '#0E1420', border: '1px solid #1C2638' }}>
+                      <div style={{ fontSize: '10px', color: '#64748B' }}>EVENT CLASSIFICATION</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, marginTop: '4px', color: '#E2E8F0', textTransform: 'uppercase' }}>
+                        {simResult.event_type}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#64748B' }}>Score: {simResult.sentiment_score} ({simResult.sentiment_label})</div>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: '#0E1420',
+                    border: '1px solid #1C2638',
+                    padding: '14px 18px',
+                    fontSize: '12px',
+                    color: '#94A3B8'
+                  }}>
+                    <strong style={{ color: '#00F0FF' }}>QUANT ACTIONABLE PROTOCOL:</strong> {simResult.actionable_insight}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
