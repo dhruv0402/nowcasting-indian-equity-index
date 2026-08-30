@@ -33,6 +33,14 @@ def sync_latest_rss_into_db():
     session.commit()
     session.close()
     
+    # Also sync Tier-1 Institutional (Direct NSE Official Filings + RBI + Bloomberg/FT)
+    try:
+        from src.ingestion.tier1_institutional_collector import sync_tier1_institutional_news
+        tier1_count = sync_tier1_institutional_news()
+        new_count += tier1_count
+    except Exception as e:
+        print(f"[Tier1Sync] Warning: {e}")
+        
     # Also sync X (Twitter FinTwit) and Reddit market sentiment
     try:
         from src.ingestion.social_news_scraper import sync_social_and_x_feeds_into_db
