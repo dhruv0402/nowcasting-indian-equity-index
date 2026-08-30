@@ -21,6 +21,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+def start_live_news_background_daemon():
+    import threading
+    import time
+    def _poll_loop():
+        while True:
+            try:
+                from src.ingestion.live_sync import sync_latest_rss_into_db
+                sync_latest_rss_into_db()
+            except Exception as e:
+                print(f"[LiveSync Daemon] Error: {e}")
+            time.sleep(60)
+            
+    thread = threading.Thread(target=_poll_loop, daemon=True)
+    thread.start()
+
 @app.get("/api/health")
 @app.get("/health")
 def health_check():
