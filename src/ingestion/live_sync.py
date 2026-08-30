@@ -24,7 +24,7 @@ def sync_latest_rss_into_db():
                 url=a["url"],
                 event_type=a["event_type"],
                 is_duplicate_of=a.get("is_duplicate_of"),
-                ingested_at=datetime.datetime.utcnow(),
+                ingested_at=datetime.datetime.now(datetime.UTC).replace(tzinfo=None),
                 is_synthetic=False
             )
             session.add(event)
@@ -32,6 +32,15 @@ def sync_latest_rss_into_db():
             
     session.commit()
     session.close()
+    
+    # Also sync X (Twitter FinTwit) and Reddit market sentiment
+    try:
+        from src.ingestion.social_news_scraper import sync_social_and_x_feeds_into_db
+        social_count = sync_social_and_x_feeds_into_db()
+        new_count += social_count
+    except Exception as e:
+        print(f"[SocialSync] Warning: {e}")
+        
     return new_count
 
 if __name__ == "__main__":
